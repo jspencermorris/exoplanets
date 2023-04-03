@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 import requests
 
 # Query data and store as a dataframe -- \
@@ -44,3 +45,26 @@ plt.show()
 
 # Scatterplot of star's age vs. metallicity
 print('METALICITY\n',psc['st_met'].describe)
+
+#Interactive bar chart of exoplanet discovery & discovery methods over time
+method_year_counts = psc.groupby(['discoverymethod', 'disc_year']).size().unstack().transpose()
+# Sort the columns of method_year_counts by their values
+method_year_counts = method_year_counts[method_year_counts.sum().sort_values().index]
+
+fig = go.Figure()
+
+for method in method_year_counts.columns:
+    num_planets = int(method_year_counts[method].sum())
+    legend_label = f'{method}: {num_planets}'
+    fig.add_trace(go.Bar(x=method_year_counts.index, y=method_year_counts[method], name=legend_label))
+
+fig.update_layout(
+    title='Exoplanet Discoveries by Observing Method Over Time',
+    xaxis_title='Year',
+    yaxis_title='Number of Exoplanet Discoveries',
+    barmode='stack'
+)
+fig.show()
+
+
+
