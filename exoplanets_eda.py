@@ -46,7 +46,8 @@ plt.show()
 # Scatterplot of star's age vs. metallicity
 print('METALICITY\n',psc['st_met'].describe)
 
-#Interactive bar chart of exoplanet discovery & discovery methods over time
+#Interactive bar chart of exoplanet discovery & discovery methods over time. Instructons found at https://plotly.com/python/bar-charts/
+
 method_year_counts = psc.groupby(['discoverymethod', 'disc_year']).size().unstack().transpose()
 # Sort the columns of method_year_counts by their values
 method_year_counts = method_year_counts[method_year_counts.sum().sort_values().index]
