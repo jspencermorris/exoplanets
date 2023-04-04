@@ -46,10 +46,10 @@ plt.show()
 # Scatterplot of star's age vs. metallicity
 print('METALICITY\n',psc['st_met'].describe)
 
-#Interactive bar chart of exoplanet discovery & discovery methods over time. Instructons found at https://plotly.com/python/bar-charts/
+#Interactive bar chart of exoplanet discovery & discovery methods over time. 
+#Documentation found at https://plotly.com/python/bar-charts/
 
 method_year_counts = psc.groupby(['discoverymethod', 'disc_year']).size().unstack().transpose()
-# Sort the columns of method_year_counts by their values
 method_year_counts = method_year_counts[method_year_counts.sum().sort_values().index]
 
 fig = go.Figure()
@@ -67,7 +67,8 @@ fig.update_layout(
 )
 fig.show()
 
-# Scatterplot of exoplanets within fifty lightyears with radius and mass between 80% and 120% of earth.
+# Interactive scatterplot of exoplanets within fifty lightyears with radius and mass between 80% and 120% of earth.
+#Documentation found at https://plotly.com/python/line-and-scatter/
 earth_mass_range = (0.8, 1.2)  # 80% to 120% of Earth's mass
 earth_radius_range = (0.8, 1.2)  # 80% to 120% of Earth's radius
 max_distance = 50  # light-years
@@ -76,6 +77,8 @@ earth_like_planets = psc[    (psc['pl_bmasse'].between(earth_mass_range[0], eart
     (psc['pl_rade'].between(earth_radius_range[0], earth_radius_range[1])) &
     (psc['sy_dist'] <= max_distance)
 ]
+marker_size_factor = 10
+marker_sizes = earth_like_planets['pl_rade'] * marker_size_factor
 
 fig = go.Figure(data=go.Scatter(
     x=earth_like_planets['pl_bmasse'],
@@ -116,10 +119,7 @@ fig.add_trace(go.Scatter(
 fig.update_layout(
     xaxis_title='Planet Mass (Earth Masses)',
     yaxis_title='Planet Radius (Earth Radii)',
-    title='Planets with Mass and Radius Similar to Earth within 50 Light-Years',
+    title='Planets with Mass and Radius Similar to Earth within 50 Light Years',
     legend=dict(x=0, y=1)
 )
-
 fig.show()
-
-
