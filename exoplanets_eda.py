@@ -67,5 +67,59 @@ fig.update_layout(
 )
 fig.show()
 
+# Scatterplot of exoplanets within fifty lightyears with radius and mass between 80% and 120% of earth.
+earth_mass_range = (0.8, 1.2)  # 80% to 120% of Earth's mass
+earth_radius_range = (0.8, 1.2)  # 80% to 120% of Earth's radius
+max_distance = 50  # light-years
+
+earth_like_planets = psc[    (psc['pl_bmasse'].between(earth_mass_range[0], earth_mass_range[1])) &
+    (psc['pl_rade'].between(earth_radius_range[0], earth_radius_range[1])) &
+    (psc['sy_dist'] <= max_distance)
+]
+
+fig = go.Figure(data=go.Scatter(
+    x=earth_like_planets['pl_bmasse'],
+    y=earth_like_planets['pl_rade'],
+    mode='markers',
+    marker=dict(
+        size=marker_sizes,
+        color=earth_like_planets['sy_dist'],
+        colorscale='viridis_r',
+        cmin=earth_like_planets['sy_dist'].min(),
+        cmax=earth_like_planets['sy_dist'].max(),
+        colorbar=dict(title='Distance (light-years)'),
+    ),
+    text=earth_like_planets['pl_name'],
+    hovertemplate='<b>%{text}</b><br>' +
+                  'Mass: %{x:.2f} Earth Masses<br>' +
+                  'Radius: %{y:.2f} Earth Radii<br>' +
+                  'Distance: %{marker.color:.2f} light-years<br>',
+    showlegend=False
+))
+
+fig.add_trace(go.Scatter(
+    x=[1],
+    y=[1],
+    mode='markers',
+    marker=dict(
+        color='lightblue',
+        size=marker_sizes.min(),
+        symbol='circle',
+        line=dict(
+            color='black',
+            width=1
+        )
+    ),
+    name='Earth'
+))
+
+fig.update_layout(
+    xaxis_title='Planet Mass (Earth Masses)',
+    yaxis_title='Planet Radius (Earth Radii)',
+    title='Planets with Mass and Radius Similar to Earth within 50 Light-Years',
+    legend=dict(x=0, y=1)
+)
+
+fig.show()
 
 
