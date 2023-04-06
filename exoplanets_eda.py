@@ -4,26 +4,34 @@ import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 import requests
 
-# Query data and store as a dataframe -- \
-    # ref: https://exoplanetarchive.ipac.caltech.edu/docs/TAP/usingTAP.html
-columns = ['pl_name', 'discoverymethod', 'disc_year', 'pl_controv_flag', \
-    'pl_orbper', 'pl_rade', 'pl_bmasse', 'pl_dens', 'hostname', 'sy_dist', \
-    'st_mass', 'st_spectype', 'st_lum', 'st_teff', 'st_met', 'st_age']
-url = 'https://exoplanetarchive.ipac.caltech.edu/TAP/sync?query='+'select+'\
-    +','.join(columns)+'+from+pscomppars'+'&format=json'
-data = requests.get(url).text
-psc = pd.read_json(data)
+filename = 'PSCompPars_2023.04.04_17.16.52.csv'
+psc = pd.read_csv(filename, comment='#')
 
 # Data transformations
     # set index as planet name
     # filter data:  remove outliers? exclude controversials?  exclude incompletes or nulls?
         # document transformations and assumptions
 
+
 # Preliminary EDA
 print(psc)
 print(psc.index)
 print(psc.columns)
 print(psc.describe)
+
+# Check for missing values
+print("\nMissing values count:")
+print(psc.isnull().sum())
+
+#Check for duplciated rows
+print("Number of duplicated rows:", psc.duplicated().sum())
+
+#Filter out all columns except for the following:
+cols_to_keep = ['pl_name', 'discoverymethod', 'disc_year', 'pl_controv_flag', \
+    'pl_orbper', 'pl_rade', 'pl_bmasse', 'pl_dens', 'hostname', 'sy_dist', \
+    'st_mass', 'st_spectype', 'st_lum', 'st_teff', 'st_met', 'st_age']
+
+psc = psc.loc[:, cols_to_keep]
 
 # Hisgoram of planet radii (relative to Earth's radius)
 print(psc['pl_rade'].describe())
