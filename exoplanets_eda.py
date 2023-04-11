@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
+import seaborn as sns
 import requests
 
 filename = 'PSCompPars_2023.04.04_17.16.52.csv'
@@ -32,6 +33,94 @@ cols_to_keep = ['pl_name', 'discoverymethod', 'disc_year', 'pl_controv_flag', \
     'st_mass', 'st_spectype', 'st_lum', 'st_teff', 'st_met', 'st_age']
 
 psc = psc.loc[:, cols_to_keep]
+# identify critical nulls
+#   drop any rows w/ nan's in these columns:  pl_rade, pl_bmasse
+#   NOTE consider dropping any rows w/ nan's in this column:  pl_orbper
+psc.isna().sum()
+psc = psc.drop( psc[ psc['pl_rade'].isna() ].index)
+psc = psc.drop( psc[ psc['pl_bmasse'].isna() ].index)
+
+# calculate pl_dens for rows that are nan
+#   ref: https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html
+earth_radius_cm = 6356.752*10**5
+earth_mass_g = 5.9722*10**29
+psc['pl_dens'].fillna(earth_mass_g*psc['pl_bmasse'] / (earth_radius_cm*psc['pl_rade'])**3, inplace=True )
+
+# identify outliers based on these assumptions:
+#   exclude objects with orbiatal periods more than 1000 years, \
+#       which is well beyond the period of the most-distant dwarf planets in the Sol system
+#   exclude objects with radii more than 30 times the radius of Earth, as they are brown dwarfs
+#   exclude objects with masses more than 3200 times the mass of Earth, as they are by definition brown dwarfs
+#   exclude objects with densities greater than lead (11.35 g/cm3)
+#   exclude objects orbiting stars with masses more than the theoretical accretion limit (120 solar masses)
+#   exclude objects orbiging stars older than the universe (13.8 Gy)
+psc.describe()
+psc.drop( psc[ psc['pl_orbper'] > 1000].index, inplace=True)
+psc.drop( psc[ psc['pl_rade'] > 30].index, inplace=True)
+psc.drop( psc[ psc['pl_bmasse'] > 3200 ].index, inplace=True)
+psc.drop( psc[ psc['pl_dens'] > 11.35 ].index, inplace=True)
+psc.drop( psc[ psc['st_mass'] > 120 ].index, inplace=True)
+psc.drop( psc[ psc['st_age'] > 13.8 ].index, inplace=True)
+
+# remove controversial objects
+psc.drop( psc[ psc['pl_controv_flag'] == 1 ].index, inplace=True)
+
+#   it looks like the spectral type is mostly null, so many consider dropping that column
+#   consider dropping any rows w/ nan's in this column:  pl_orbper
+
+# reset row indices
+psc.reset_index(drop=True, inplace=True)
+
+# Hisgoram of planet radii (relative to Earth's radius)
+print(psc['pl_rade'].describe())
+psc['pl_rade'].plot.hist(bins=100)
+plt.title('distribution of Planet Radii')
+plt.xlabel('Planet Radius (relative to Earth)')
+plt.ylabel('Counts')
+plt.show()
+
+# Density plot of planet radii (relative to Earth's radius)
+sns.distplot(psc['pl_rade'], bins=100, color='k')
+plt.title('density of Planet Radii')
+plt.xlabel('Planet Radius (relative to Earth)')
+plt.ylabel('Counts')
+plt.show()
+
+# Scatterplot of planet radius vs. mass
+# NOTE - there may be an outlier (convert from loglog back to linear to see)
+print(psc[['pl_rade','pl_bmasse']].describe())
+psc.plot.scatter(x='pl_bmasse', y='pl_rade', \
+    xlabel='Est. Planet Mass (relative to Earth)', \
+    ylabel='Planet Radius (relative to Earth)', \
+    loglog=True)
+plt.title('Relationship of Planet Estimated Mass and Radius ')
+plt.show()
+
+# Boxplots based on discoverymethod
+box_vars = ['disc_year', 'pl_orbper', 'pl_rade', 'pl_bmasse', 'sy_dist', 'st_mass', 'st_lum', \
+    'st_teff', 'st_met']
+fig, axes = plt.subplots(nrows=3, ncols=3, sharey='row')
+k = 0
+for i in range(3):
+    for j in range(3):
+        a = sns.boxplot(x=box_vars[k], y='discoverymethod', data=psc, orient='h', ax=axes[i,j])
+        a.set(ylabel=None)
+        k += 1
+fig.subplots_adjust(hspace = 0.3, wspace=0)
+fig.suptitle('Boxplots of key numerical variables across different Discovery Methods')
+plt.show()
+
+# Scatterplot of star's metallicity and age and planet's density
+print('METALICITY\n',psc['st_met'].describe())
+print('AGE\n',psc['st_age'].describe())
+print('DENSITY\n',psc['pl_dens'].describe())
+fig = plt.figure()
+ax = fig.add_subplot(projection='3d')
+ax.scatter(psc['st_met'], psc['st_age'], psc['pl_dens'])
+ax.set_xlabel('Stellar Metallicity (dex)')
+ax.set_ylabel('Stellar Age (Gy)')
+ax.set_zlabel('Planet Density (g/cm3)')
+plt.show()
 
 # Hisgoram of planet radii (relative to Earth's radius)
 print(psc['pl_rade'].describe())
