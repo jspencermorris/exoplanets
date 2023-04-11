@@ -168,7 +168,7 @@ fig.show()
 #Documentation found at https://plotly.com/python/line-and-scatter/
 earth_mass_range = (0.8, 1.2)  # 80% to 120% of Earth's mass
 earth_radius_range = (0.8, 1.2)  # 80% to 120% of Earth's radius
-max_distance = 15.5  # light-years
+max_distance = 15.3301  # parsecs
 
 earth_like_planets = psc[    (psc['pl_bmasse'].between(earth_mass_range[0], earth_mass_range[1])) &
     (psc['pl_rade'].between(earth_radius_range[0], earth_radius_range[1])) &
