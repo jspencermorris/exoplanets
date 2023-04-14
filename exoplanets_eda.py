@@ -8,14 +8,17 @@ import seaborn as sns
 import requests
 from tabulate import tabulate
 
+
 #%% Import Data
 filename = 'PSCompPars_2023.04.04_17.16.52.csv'
 psc = pd.read_csv(filename, comment='#')
+
 
 #%% Preliminary Analysis
 print(psc.head())
 print(len(psc))
 print(psc.info())
+
 
 #%% Transform Data
 
@@ -73,10 +76,6 @@ psc.drop(['pl_controv_flag'], axis=1, inplace=True)
 psc.reset_index(drop=True, inplace=True)
 
 
-
-
-
-
 #%% Discovery Method
 # Descriptive statistics
 print(psc['discoverymethod'].describe())
@@ -111,6 +110,7 @@ fig.subplots_adjust(hspace = 0.3, wspace=0)
 fig.suptitle('Boxplots of key numerical variables across different Discovery Methods')
 plt.show()
 
+
 #%% Discovery Year
 print(psc['disc_year'].describe())
 print(psc.groupby(psc['disc_year']).size())
@@ -125,6 +125,35 @@ plt.show()
 
 # table showing discovery method by year
 print(psc.groupby([psc['discoverymethod'], psc['disc_year']]).size().unstack())
+
+##############################################################################
+#discovery year
+fig, ax = plt.subplots()
+
+ax.plot(psc.groupby('disc_year').size())
+plt.title('Total discoveries over time')
+plt.xlabel('Discover year')
+plt.ylabel('# of Planents')
+plt.show()
+pass 
+##############################################################################
+
+############################################################################
+#planent discover methods
+discovery_counts = psc.pivot_table(index='disc_year', columns='discoverymethod', values='pl_name', aggfunc='count')
+
+# Create a line plot
+fig, ax = plt.subplots(figsize=(10,5))
+for column in discovery_counts.columns:
+    ax.plot(discovery_counts.index, discovery_counts[column], label=column)
+
+ax.set_xlabel('Year')
+ax.set_ylabel('# Of Planet Discoveries')
+ax.set_title('Total Planet Discoveries by Discovery Method')
+ax.legend()
+plt.show()
+pass
+############################################################################
 
 #Interactive bar chart of exoplanet discovery & discovery methods over time. 
 #Documentation found at https://plotly.com/python/bar-charts/
@@ -224,6 +253,19 @@ fig, axes = plt.subplots()
 axes.hist(psc['pl_rade'], bins=20)
 plt.show()
 
+###############################################################################
+#planent radious
+fig, ax = plt.subplots(figsize=(10,5))
+
+ax.set_xlabel('Planents Radius (Reletive to Earths)')
+ax.set_ylabel('# of Planents')
+ax.set_title("Planent Radius")
+
+ax.hist(psc.pl_rade,bins=200)
+plt.show()
+pass
+###############################################################################
+
 # density plot - radius
 sns.distplot(psc['pl_rade'], bins=100, color='k')
 plt.title('density of Planet Radii')
@@ -273,7 +315,6 @@ sns.boxplot(data=psc, x='disc_decade', y='pl_rade')
 plt.show()
 psc[ (psc['disc_year']<=1999) & (psc['pl_rade']<5) ]  # these 3 planets are tiny, detected by 'pulsar timing' (very special/unique), and were the first-ever detections!
 
-
 # add new col to categorize by radius
 rad_bins = [0, 0.75,1.25,3,8,15,4000]
 rad_labels = ["Sub-Terrestrial","Terrestrial","Super-Terrestrial","Sub-Giant", "Giant", "Super-Giant"]
@@ -299,16 +340,40 @@ print(psc.groupby(['method2','disc_decade'])['pl_bmasse'].describe())
 print(psc.groupby(['method2','pl_orbloc'])['pl_bmasse'].describe())
 print(psc.groupby(['pl_orbloc','rad_cat'])['pl_bmasse'].describe())
 
-# basic histogram - radius
+# basic histogram - mass
 fig, axes = plt.subplots()
 axes.hist(psc['pl_bmasse'], bins=20)
 plt.show()
 
-# density plot - radius
+###############################################################################
+# Planents masses
+fig, ax = plt.subplots(figsize=(10,5))
+
+ax.set_xlabel('Planents Mass (Reletive to Earths)')
+ax.set_ylabel('# of Planents')
+ax.set_title('Planent Masses')
+
+ax.hist(psc.pl_bmasse,bins=200)
+plt.show()
+pass
+###############################################################################
+
+# histogram - mass, zoom1
 fig, axes = plt.subplots()
 axes.hist(psc['pl_bmasse'], bins=2000)
 axes.set_xlim(0,50)
 plt.show()
+
+###############################################################################
+ax.hist(psc.pl_bmasse,bins=200)
+plt.show()
+pass
+
+#plannets masses zoomed in 
+fig, ax = plt.subplots(figsize=(10,5))
+earthlike = psc[(psc.pl_bmasse) <=20]
+ax.hist(earthlike.pl_bmasse,bins=200)
+###############################################################################
 
 # boxplots - mass vs. method
 fig, axes = plt.subplots()
@@ -374,8 +439,22 @@ print(psc.groupby(['bmasse_cat','rad_cat'])['discoverymethod'].value_counts().un
 print(psc.groupby(['bmasse_cat'])['rad_cat'].value_counts().unstack())
 print(psc.groupby(['bmasse_cat','rad_cat'])['pl_orbloc'].value_counts().unstack())
 
+
 #%% Density
 
+###############################################################################
+# planents densities relive to earths
+#interesting cut off at 6
+fig, ax = plt.subplots(figsize=(10,5))
+
+ax.set_xlabel('Planents Density (Reletive to Earths)')
+ax.set_ylabel('# of Planents')
+ax.set_title("Planent's Density's")
+
+ax.hist(psc.pl_dens,bins=200)
+plt.show()
+pass
+###############################################################################
 
 
 #%% System Distance
@@ -383,7 +462,22 @@ print(psc['sy_dist'].describe())
 print('Null Distances: ', psc['sy_dist'].isnull().sum())
 print('% of planets w/ Null Distances: ', psc['sy_dist'].isnull().sum()/psc['sy_dist'].size)
 
+###############################################################################
+# system distance vs density
+fig, ax = plt.subplots()
+ax.scatter(psc.sy_dist,psc.pl_dens)
 
+# ax.set_xscale('log') 
+# ax.set_yscale('log')  
+plt.scatter(1, 1, c='red', marker='x', s=200,label ='Earth')
+
+ax.set_xlabel('System Distance')
+ax.set_ylabel('Planent Density')
+ax.set_title('System distance vs Planent density')
+ax.legend()
+plt.show()
+pass
+###############################################################################
 
 # Interactive scatterplot of exoplanets within fifty lightyears with radius and mass between 80% and 120% of earth.
 #Documentation found at https://plotly.com/python/line-and-scatter/
@@ -448,6 +542,19 @@ print(psc['st_mass'].describe())
 print('Null Mass: ', psc['st_mass'].isnull().sum())
 print('% of planets w/ Null Mass: ', psc['st_mass'].isnull().sum()/psc['st_mass'].size)
 
+###############################################################################
+# Stars mass appears to be nearly evenly distributed around the suns Mass
+fig, ax = plt.subplots(figsize=(10,5))
+
+ax.set_xlabel('Star Mass (Reletive to The Sun)')
+ax.set_ylabel('# of Stars')
+ax.set_title("Star's Mass")
+
+ax.hist(psc.st_mass,bins=200)
+plt.show()
+pass
+###############################################################################
+
 
 #%% Star Spectral Type
 print(psc['st_spectype'].describe())
@@ -459,6 +566,33 @@ print('% of planets w/ Null Spectral Type: ', psc['st_spectype'].isnull().sum()/
 print(psc['st_lum'].describe())
 print('Null Luminosity: ', psc['st_lum'].isnull().sum())
 print('% of planets w/ Null Luminosity: ', psc['st_lum'].isnull().sum()/psc['st_lum'].size)
+
+###############################################################################
+# Stars mass vs Luminosity
+fig, ax = plt.subplots(figsize=(10,5))
+colors = psc.st_mass
+sns.regplot(psc.st_mass,psc.st_lum)
+
+ax.set_xlabel('Stars Mass (Reletive to Sun)')
+ax.set_ylabel('unit: relative to Sun’s luminosity log10(Solar)')
+ax.set_title('Stars Mass vs Luminosity')
+plt.show()
+###############################################################################
+
+###############################################################################
+#Stars mass vs luminosity
+fig, ax = plt.subplots(figsize=(10,5))
+colors = psc.st_age
+scatter = ax.scatter(psc.st_mass,psc.st_lum, c = colors, s=100, edgecolors='black')
+ 
+ax.set_xlabel('Star Mass (Reletive to Sun)')
+ax.set_ylabel('Luminosity Relative to Sun’s luminosity log10(Solar)')
+ax.set_title("Star's Mass vs Luminosity")
+
+cbar = plt.colorbar(scatter)
+cbar.set_label('Star Mass (reletive to Sun)')
+plt.show()
+###############################################################################
 
 
 #%% Star Effective Temperature
@@ -489,7 +623,6 @@ ax.set_xlabel('Stellar Metallicity (dex)')
 ax.set_ylabel('Stellar Age (Gy)')
 ax.set_zlabel('Planet Density (g/cm3)')
 plt.show()
-
 
 
 #%% System
@@ -542,136 +675,7 @@ print(psc_spec.groupby('rad_cat')['spec_cat'].value_counts().unstack())
 print(psc_spec.groupby('bmasse_cat')['spec_cat'].value_counts().unstack())
 print(psc_spec.groupby(['bmasse_cat','rad_cat'])['spec_cat'].value_counts().unstack())
 
-#%% new from CF
 
+#%% new 
 
-############################################################################
-
-#planent discover methods
-discovery_counts = psc.pivot_table(index='disc_year', columns='discoverymethod', values='pl_name', aggfunc='count')
-
-# Create a line plot
-fig, ax = plt.subplots(figsize=(10,5))
-for column in discovery_counts.columns:
-    ax.plot(discovery_counts.index, discovery_counts[column], label=column)
-
-ax.set_xlabel('Year')
-ax.set_ylabel('# Of Planet Discoveries')
-ax.set_title('Total Planet Discoveries by Discovery Method')
-ax.legend()
-plt.show()
-pass
-
-##############################################################################
-#discovery year
-fig, ax = plt.subplots()
-
-ax.plot(psc.groupby('disc_year').size())
-plt.title('Total discoveries over time')
-plt.xlabel('Discover year')
-plt.ylabel('# of Planents')
-plt.show()
-pass 
-###############################################################################
-
-# system distance vs density
-fig, ax = plt.subplots()
-ax.scatter(psc.sy_dist,psc.pl_dens)
-
-# ax.set_xscale('log') 
-# ax.set_yscale('log')  
-plt.scatter(1, 1, c='red', marker='x', s=200,label ='Earth')
-
-ax.set_xlabel('System Distance')
-ax.set_ylabel('Planent Density')
-ax.set_title('System distance vs Planent density')
-ax.legend()
-plt.show()
-pass
-###############################################################################
-#planent radious
-fig, ax = plt.subplots(figsize=(10,5))
-
-ax.set_xlabel('Planents Radius (Reletive to Earths)')
-ax.set_ylabel('# of Planents')
-ax.set_title("Planent Radius")
-
-ax.hist(psc.pl_rade,bins=200)
-plt.show()
-pass
-
-###############################################################################
-# Planents masses
-fig, ax = plt.subplots(figsize=(10,5))
-
-ax.set_xlabel('Planents Mass (Reletive to Earths)')
-ax.set_ylabel('# of Planents')
-ax.set_title('Planent Masses')
-
-ax.hist(psc.pl_bmasse,bins=200)
-plt.show()
-pass
-###############################################################################
-#plannets masses zoomed in 
-fig, ax = plt.subplots(figsize=(10,5))
-earthlike = psc[(psc.pl_bmasse) <=20]
-ax.hist(earthlike.pl_bmasse,bins=200)
-
-ax.set_xlabel('Planents Mass (Reletive to Earths)')
-ax.set_ylabel('# of Planents')
-ax.set_title('Planent Masses zoomed in')
-plt.show()
-pass
-
-###############################################################################
-# planents densities relive to earths
-#interesting cut off at 6
-fig, ax = plt.subplots(figsize=(10,5))
-
-ax.set_xlabel('Planents Density (Reletive to Earths)')
-ax.set_ylabel('# of Planents')
-ax.set_title("Planent's Density's")
-
-ax.hist(psc.pl_dens,bins=200)
-plt.show()
-pass
-
-###############################################################################
-# Stars mass appears to be nearly evenly distributed around the suns Mass
-fig, ax = plt.subplots(figsize=(10,5))
-
-ax.set_xlabel('Star Mass (Reletive to The Sun)')
-ax.set_ylabel('# of Stars')
-ax.set_title("Star's Mass")
-
-ax.hist(psc.st_mass,bins=200)
-plt.show()
-pass
-###############################################################################
-
-# Stars mass vs Luminosity
-fig, ax = plt.subplots(figsize=(10,5))
-colors = psc.st_mass
-sns.regplot(psc.st_mass,psc.st_lum)
-
-
-ax.set_xlabel('Stars Mass (Reletive to Sun)')
-ax.set_ylabel('unit: relative to Sun’s luminosity log10(Solar)')
-ax.set_title('Stars Mass vs Luminosity')
-plt.show()
-###############################################################################
-#Stars mass vs luminosity
-fig, ax = plt.subplots(figsize=(10,5))
-colors = psc.st_age
-scatter = ax.scatter(psc.st_mass,psc.st_lum, c = colors, s=100, edgecolors='black')
- 
-
-ax.set_xlabel('Star Mass (Reletive to Sun)')
-ax.set_ylabel('Luminosity Relative to Sun’s luminosity log10(Solar)')
-ax.set_title("Star's Mass vs Luminosity")
-
-cbar = plt.colorbar(scatter)
-cbar.set_label('Star Mass (reletive to Sun)')
-plt.show()
-###############################################################################
 
