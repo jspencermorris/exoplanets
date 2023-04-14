@@ -220,3 +220,128 @@ fig.update_layout(
     legend=dict(x=0, y=1)
 )
 fig.show()
+
+
+
+############################################################################
+
+#planent discover methods
+discovery_counts = psc.pivot_table(index='disc_year', columns='discoverymethod', values='pl_name', aggfunc='count')
+
+# Create a line plot
+fig, ax = plt.subplots(figsize=(10,5))
+for column in discovery_counts.columns:
+    ax.plot(discovery_counts.index, discovery_counts[column], label=column)
+
+ax.set_xlabel('Year')
+ax.set_ylabel('# Of Planet Discoveries')
+ax.set_title('Total Planet Discoveries by Discovery Method')
+ax.legend()
+plt.show()
+pass
+
+##############################################################################
+#discovery year
+fig, ax = plt.subplots()
+
+ax.plot(psc.groupby('disc_year').size())
+plt.title('Total discoveries over time')
+plt.xlabel('Discover year')
+plt.ylabel('# of Planents')
+plt.show()
+pass 
+###############################################################################
+
+# system distance vs density
+fig, ax = plt.subplots()
+ax.scatter(psc.sy_dist,psc.pl_dens)
+
+# ax.set_xscale('log') 
+# ax.set_yscale('log')  
+plt.scatter(1, 1, c='red', marker='x', s=200,label ='Earth')
+
+ax.set_xlabel('System Distance')
+ax.set_ylabel('Planent Density')
+ax.set_title('System distance vs Planent density')
+ax.legend()
+pass
+###############################################################################
+#planent radious
+fig, ax = plt.subplots(figsize=(10,5))
+
+ax.set_xlabel('Planents Radius (Reletive to Earths)')
+ax.set_ylabel('# of Planents')
+ax.set_title("Planent Radius")
+
+ax.hist(psc.pl_rade,bins=200)
+pass
+
+###############################################################################
+# Planents masses
+fig, ax = plt.subplots(figsize=(10,5))
+
+ax.set_xlabel('Planents Mass (Reletive to Earths)')
+ax.set_ylabel('# of Planents')
+ax.set_title('Planent Masses')
+
+ax.hist(psc.pl_bmasse,bins=200)
+pass
+###############################################################################
+#plannets masses zoomed in 
+fig, ax = plt.subplots(figsize=(10,5))
+earthlike = psc[(psc.pl_bmasse) <=20]
+ax.hist(earthlike.pl_bmasse,bins=200)
+
+ax.set_xlabel('Planents Mass (Reletive to Earths)')
+ax.set_ylabel('# of Planents')
+ax.set_title('Planent Masses zoomed in')
+
+pass
+
+###############################################################################
+# planents densities relive to earths
+#interesting cut off at 6
+fig, ax = plt.subplots(figsize=(10,5))
+
+ax.set_xlabel('Planents Density (Reletive to Earths)')
+ax.set_ylabel('# of Planents')
+ax.set_title("Planent's Density's")
+
+ax.hist(psc.pl_dens,bins=200)
+pass
+
+###############################################################################
+# Stars mass appears to be nearly evenly distributed around the suns Mass
+fig, ax = plt.subplots(figsize=(10,5))
+
+ax.set_xlabel('Star Mass (Reletive to The Sun)')
+ax.set_ylabel('# of Stars')
+ax.set_title("Star's Mass")
+
+ax.hist(psc.st_mass,bins=200)
+pass
+###############################################################################
+
+# Stars mass vs Luminosity
+fig, ax = plt.subplots(figsize=(10,5))
+colors = psc.st_mass
+sns.regplot(psc.st_mass,psc.st_lum)
+
+
+ax.set_xlabel('Stars Mass (Reletive to Sun)')
+ax.set_ylabel('unit: relative to Sun’s luminosity log10(Solar)')
+ax.set_title('Stars Mass vs Luminosity')
+###############################################################################
+#Stars mass vs luminosity
+fig, ax = plt.subplots(figsize=(10,5))
+colors = psc.st_age
+scatter = ax.scatter(psc.st_mass,psc.st_lum, c = colors, s=100, edgecolors='black')
+ 
+
+ax.set_xlabel('Star Mass (Reletive to Sun)')
+ax.set_ylabel('Luminosity Relative to Sun’s luminosity log10(Solar)')
+ax.set_title("Star's Mass vs Luminosity")
+
+cbar = plt.colorbar(scatter)
+cbar.set_label('Star Mass (reletive to Sun)')
+###############################################################################
