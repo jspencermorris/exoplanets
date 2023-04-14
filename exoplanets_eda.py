@@ -477,17 +477,21 @@ ax.set_title('System distance vs Planent density')
 ax.legend()
 plt.show()
 pass
+
 ###############################################################################
 
 # Interactive scatterplot of exoplanets within fifty lightyears with radius and mass between 80% and 120% of earth.
-#Documentation found at https://plotly.com/python/line-and-scatter/
+# Documentation found at https://plotly.com/python/line-and-scatter/
 earth_mass_range = (0.75, 1.25)  # 75% to 125% of Earth's mass
 earth_radius_range = (0.75, 1.25)  # 75% to 125% of Earth's radius
-max_distance = 15.330  # parsecs
+max_distance = 50
+
+# Convert parsecs to light-years
+psc['sy_dist_ly'] = psc['sy_dist'] * 3.262
 
 earth_like_planets = psc[    (psc['pl_bmasse'].between(earth_mass_range[0], earth_mass_range[1])) &
     (psc['pl_rade'].between(earth_radius_range[0], earth_radius_range[1])) &
-    (psc['sy_dist'] <= max_distance)
+    (psc['sy_dist_ly'] <= max_distance)
 ]
 marker_size_factor = 10
 marker_sizes = earth_like_planets['pl_rade'] * marker_size_factor
@@ -498,10 +502,10 @@ fig = go.Figure(data=go.Scatter(
     mode='markers',
     marker=dict(
         size=marker_sizes,
-        color=earth_like_planets['sy_dist'],
+        color=earth_like_planets['sy_dist_ly'],
         colorscale='viridis_r',
-        cmin=earth_like_planets['sy_dist'].min(),
-        cmax=earth_like_planets['sy_dist'].max(),
+        cmin=earth_like_planets['sy_dist_ly'].min(),
+        cmax=earth_like_planets['sy_dist_ly'].max(),
         colorbar=dict(title='Distance (light-years)'),
     ),
     text=earth_like_planets['pl_name'],
