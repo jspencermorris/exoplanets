@@ -264,6 +264,7 @@ ax.set_xlabel('System Distance')
 ax.set_ylabel('Planent Density')
 ax.set_title('System distance vs Planent density')
 ax.legend()
+plt.show()
 pass
 ###############################################################################
 #planent radious
@@ -274,6 +275,7 @@ ax.set_ylabel('# of Planents')
 ax.set_title("Planent Radius")
 
 ax.hist(psc.pl_rade,bins=200)
+plt.show()
 pass
 
 ###############################################################################
@@ -285,6 +287,7 @@ ax.set_ylabel('# of Planents')
 ax.set_title('Planent Masses')
 
 ax.hist(psc.pl_bmasse,bins=200)
+plt.show()
 pass
 ###############################################################################
 #plannets masses zoomed in 
@@ -295,7 +298,7 @@ ax.hist(earthlike.pl_bmasse,bins=200)
 ax.set_xlabel('Planents Mass (Reletive to Earths)')
 ax.set_ylabel('# of Planents')
 ax.set_title('Planent Masses zoomed in')
-
+plt.show()
 pass
 
 ###############################################################################
@@ -308,6 +311,7 @@ ax.set_ylabel('# of Planents')
 ax.set_title("Planent's Density's")
 
 ax.hist(psc.pl_dens,bins=200)
+plt.show()
 pass
 
 ###############################################################################
@@ -319,6 +323,7 @@ ax.set_ylabel('# of Stars')
 ax.set_title("Star's Mass")
 
 ax.hist(psc.st_mass,bins=200)
+plt.show()
 pass
 ###############################################################################
 
@@ -331,6 +336,7 @@ sns.regplot(psc.st_mass,psc.st_lum)
 ax.set_xlabel('Stars Mass (Reletive to Sun)')
 ax.set_ylabel('unit: relative to Sun’s luminosity log10(Solar)')
 ax.set_title('Stars Mass vs Luminosity')
+plt.show()
 ###############################################################################
 #Stars mass vs luminosity
 fig, ax = plt.subplots(figsize=(10,5))
@@ -344,4 +350,5 @@ ax.set_title("Star's Mass vs Luminosity")
 
 cbar = plt.colorbar(scatter)
 cbar.set_label('Star Mass (reletive to Sun)')
+plt.show()
 ###############################################################################
