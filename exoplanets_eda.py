@@ -92,12 +92,17 @@ table = tabulate.tabulate(method_stats, headers=headers, tablefmt='fancy_grid')
 print(table)
 
 # barchart to compare number of discoveries by technique
-fig, axes = plt.subplots()
-psc['discoverymethod'].value_counts().plot(kind='barh', ax=axes)
+plt.style.use('seaborn')
+fig, axes = plt.subplots(figsize=(8, 6))
+discovery_counts = psc['discoverymethod'].value_counts()
+discovery_counts.plot(kind='barh', ax=axes)
+axes.set_xlabel('# of Discoveries', fontsize=12, fontweight='bold')
+axes.set_ylabel('Discovery Technique', fontsize=12, fontweight='bold')
+axes.set_title('Three Techniques Account for Over 99% of All Discoveries', fontsize=14, fontweight='bold')
 axes.set_xscale('log')
-axes.set_xlabel('# of Discoveries')
-axes.set_ylabel('Discovery Technique')
-axes.set_title('Three Techniques account over 99% of all discoveries')
+axes.invert_yaxis()
+for i, v in enumerate(discovery_counts):
+    axes.text(v + 10, i - 0.1, str(v), fontsize=10)
 plt.show()
 
 # add new col to categorize by main discovery methods
@@ -106,18 +111,29 @@ new_methods = {method: (method if method in top_methods else 'Others') for metho
 psc['method2'] = psc['discoverymethod'].map(new_methods)
 
 # Boxplots based on discoverymethod
-box_vars = ['disc_year', 'pl_orbper', 'pl_rade', 'pl_bmasse', 'sy_dist', 'st_mass', 'st_lum', \
-    'st_teff', 'st_met']
-fig, axes = plt.subplots(nrows=3, ncols=3, sharey='row')
-k = 0
-for i in range(3):
-    for j in range(3):
-        a = sns.boxplot(x=box_vars[k], y='discoverymethod', data=psc, orient='h', ax=axes[i,j])
-        a.set(ylabel=None)
-        k += 1
-fig.subplots_adjust(hspace = 0.3, wspace=0)
-fig.suptitle('Boxplots of key numerical variables across different Discovery Methods')
+sns.set_style("whitegrid")
+
+box_vars = ['disc_year', 'pl_orbper', 'pl_rade', 'pl_bmasse', 'sy_dist', 'st_mass', 'st_lum', 'st_teff', 'st_met']
+
+fig, axes = plt.subplots(nrows=3, ncols=3, figsize=(15, 10), sharey='row')
+
+axes = axes.flatten()
+
+for i, var in enumerate(box_vars):
+    sns.boxplot(x=var, y='discoverymethod', data=psc, orient='h', ax=axes[i])
+    axes[i].set_xlabel(var.capitalize(), fontsize=12, fontweight='bold')
+    if i == 0:
+        axes[i].set_ylabel('Discovery Method', fontsize=12, fontweight='bold')
+    else:
+        axes[i].set_ylabel(None)
+        
+    axes[i].set_title(f"{var.capitalize()} by Discovery Method", fontsize=14, fontweight='bold')
+    
+fig.subplots_adjust(hspace = 0.3, wspace=0.15)
+fig.suptitle('Boxplots of Key Numerical Variables Across Different Discovery Methods', fontsize=16, fontweight='bold', y=1.03)
+
 plt.show()
+
 
 
 # Summary statistics for discovery year
@@ -142,11 +158,14 @@ print('\n' + table2)
 
 
 # cumulative plot to see how discoveries have trended over time
-fig, axes = plt.subplots()
-axes.plot(psc.groupby(psc['disc_year']).size().index, psc.groupby(psc['disc_year']).size().values.cumsum(), marker='o')
-axes.set_xlabel('Year of Discovery')
-axes.set_ylabel('Cumulative Number of Discoveries')
-axes.set_title("Exoplanet Discoveries accelerated in the 2010's")
+plt.style.use('seaborn')
+fig, axes = plt.subplots(figsize=(8, 6))
+year_counts = psc.groupby(psc['disc_year']).size().cumsum()
+axes.plot(year_counts.index, year_counts.values, marker='o')
+axes.set_xlabel('Year of Discovery', fontsize=12, fontweight='bold')
+axes.set_ylabel('Cumulative Number of Discoveries', fontsize=12, fontweight='bold')
+axes.set_title("Exoplanet Discoveries Accelerated in the 2010's", fontsize=14, fontweight='bold')
+axes.grid(color='lightgray', linestyle='--')
 plt.show()
 
 # table showing discovery method by year
@@ -154,13 +173,17 @@ print(psc.groupby([psc['discoverymethod'], psc['disc_year']]).size().unstack())
 
 ##############################################################################
 #discovery year
-fig, ax = plt.subplots()
+plt.style.use('seaborn')
+fig, axes = plt.subplots(figsize=(8, 6))
+discovery_counts = psc.groupby('disc_year').size()
+axes.plot(discovery_counts.index, discovery_counts.values)
+axes.set_xlabel('Year of Discovery', fontsize=12, fontweight='bold')
+axes.set_ylabel('# of Planets', fontsize=12, fontweight='bold')
+axes.set_title('Total Discoveries Over Time', fontsize=14, fontweight='bold')
 
-ax.plot(psc.groupby('disc_year').size())
-plt.title('Total discoveries over time')
-plt.xlabel('Discover year')
-plt.ylabel('# of Planents')
 plt.show()
+
+
 pass 
 ##############################################################################
 
@@ -173,11 +196,12 @@ fig, ax = plt.subplots(figsize=(10,5))
 for column in discovery_counts.columns:
     ax.plot(discovery_counts.index, discovery_counts[column], label=column)
 
-ax.set_xlabel('Year')
-ax.set_ylabel('# Of Planet Discoveries')
-ax.set_title('Total Planet Discoveries by Discovery Method')
+ax.set_xlabel('Year', fontsize=12, fontweight='bold')
+ax.set_ylabel('# Of Planet Discoveries', fontsize=12, fontweight='bold')
+ax.set_title('Total Planet Discoveries by Discovery Method', fontsize=14, fontweight='bold')
 ax.legend()
 plt.show()
+
 pass
 ############################################################################
 
@@ -217,45 +241,89 @@ print(table)
 
 
 #%% Orbital Period
-print(psc['pl_orbper'].describe())
-print('Null Periods: ', psc['pl_orbper'].isnull().sum())
-print('% of planets w/ Null Periods: ', psc['pl_orbper'].isnull().sum()/psc['pl_orbper'].size)
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-# basic histogram - period
-fig, axes = plt.subplots()
-axes.hist(psc['pl_orbper'], bins=20)
+# Boxplots based on discovery method
+box_vars = ['disc_year', 'pl_orbper', 'pl_rade', 'pl_bmasse', 'sy_dist', 'st_mass', 'st_lum', 'st_teff', 'st_met']
+fig, axes = plt.subplots(nrows=3, ncols=3, figsize=(12, 8), sharey='row')
+
+k = 0
+for i in range(3):
+    for j in range(3):
+        a = sns.boxplot(x=box_vars[k], y='discoverymethod', data=psc, orient='h', ax=axes[i,j])
+        a.set(ylabel=None)
+        k += 1
+
+fig.suptitle('Boxplots of Key Numerical Variables Across Different Discovery Methods', fontsize=16, fontweight='bold')
 plt.show()
 
-# basic histogram - period, zoom1 - past jupiter
-fig, axes = plt.subplots()
-axes.hist(psc['pl_orbper'], bins=20, range=(0,5000))
+# Orbital Period
+orb_period = psc['pl_orbper']
+print('Summary Statistics for Orbital Period:')
+print(orb_period.describe())
+print('Number of Null Periods: ', orb_period.isnull().sum())
+print('% of planets w/ Null Periods: {:.2%}'.format(orb_period.isnull().sum() / len(orb_period)))
+
+# Basic histogram - period
+fig, ax = plt.subplots()
+ax.hist(orb_period, bins=20, color='cornflowerblue', alpha=0.7)
+ax.set_xlabel('Orbital Period (days)', fontsize=12, fontweight='bold')
+ax.set_ylabel('# of Planets', fontsize=12, fontweight='bold')
+ax.set_title('Histogram of Orbital Period', fontsize=14, fontweight='bold')
 plt.show()
 
-# basic histogram - period, zoom2 - past mars
-fig, axes = plt.subplots()
-axes.hist(psc['pl_orbper'], bins=20, range=(0,1000))
+# Basic histogram - period, zoom1 - past Jupiter
+fig, ax = plt.subplots()
+ax.hist(orb_period, bins=20, range=(0, 5000), color='mediumaquamarine', alpha=0.7)
+ax.set_xlabel('Orbital Period (days)', fontsize=12, fontweight='bold')
+ax.set_ylabel('# of Planets', fontsize=12, fontweight='bold')
+ax.set_title('Histogram of Orbital Period (Zoom 1: Past Jupiter)', fontsize=14, fontweight='bold')
 plt.show()
 
-# basic histogram - period, zoom3 - past earth
-fig, axes = plt.subplots()
-axes.hist(psc['pl_orbper'], bins=20, range=(0,400))
+# Basic histogram - period, zoom2 - past Mars
+fig, ax = plt.subplots()
+ax.hist(orb_period, bins=20, range=(0, 1000), color='sandybrown', alpha=0.7)
+ax.set_xlabel('Orbital Period (days)', fontsize=12, fontweight='bold')
+ax.set_ylabel('# of Planets', fontsize=12, fontweight='bold')
+ax.set_title('Histogram of Orbital Period (Zoom 2: Past Mars)', fontsize=14, fontweight='bold')
 plt.show()
 
-# basic histogram - period, zoom4 - past mercury
-fig, axes = plt.subplots()
-axes.hist(psc['pl_orbper'], bins=20, range=(0,150))
+# Basic histogram - period, zoom3 - past Earth
+fig, ax = plt.subplots()
+ax.hist(orb_period, bins=20, range=(0, 400), color='indianred', alpha=0.7)
+ax.set_xlabel('Orbital Period (days)', fontsize=12, fontweight='bold')
+ax.set_ylabel('# of Planets', fontsize=12, fontweight='bold')
+ax.set_title('Histogram of Orbital Period (Zoom 3: Past Earth)', fontsize=14, fontweight='bold')
 plt.show()
+
+# Basic histogram - period, zoom4 - past Mercury
+fig, ax = plt.subplots()
+ax.hist(orb_period, bins=20, range=(0, 150), color='purple', alpha=0.7)
+ax.set_xlabel('Orbital Period (days)', fontsize=12, fontweight='bold')
+ax.set_ylabel('Frequency', fontsize=12, fontweight='bold')
+ax.set_title('Histogram of Exoplanet Orbital Periods (Past Mercury)', fontsize=14, fontweight='bold')
+plt.show()
+
 
 # Boxplots of period based on method2 and disc_decade
 print(psc.groupby('disc_decade')['pl_orbper'].describe())
 print(psc.groupby('method2')['pl_orbper'].describe())
 print(psc['pl_orbper'].isnull().groupby(psc['method2']).sum())
-fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2)
+fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(12, 6))
 sns.boxplot(x='disc_decade', y='pl_orbper', data=psc, orient='v', ax=ax1)
 sns.boxplot(x='method2', y='pl_orbper', data=psc, orient='v', ax=ax2)
 ax1.set_yscale('log')
 ax2.set_yscale('log')
+ax1.set_title('Period Boxplots by Decade', fontsize=14, fontweight='bold')
+ax1.set_xlabel('Discovery Decade', fontsize=12, fontweight='bold')
+ax1.set_ylabel('Orbital Period (days)', fontsize=12, fontweight='bold')
+ax2.set_title('Period Boxplots by Discovery Method', fontsize=14, fontweight='bold')
+ax2.set_xlabel('Discovery Method', fontsize=12, fontweight='bold')
+ax2.set_ylabel('Orbital Period (days)', fontsize=12, fontweight='bold')
+
 plt.show()
+
 
 # create new col to estimate mean distance from host star, in AU
 #   use kepler's law to calculate the distance:  R_orbit ~ (T^2 * M*)^(1/3)
