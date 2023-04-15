@@ -209,6 +209,7 @@ pass
 #Interactive bar chart of exoplanet discovery & discovery methods over time. 
 #Documentation found at https://plotly.com/python/bar-charts/
 
+
 method_year_counts = psc.groupby(['discoverymethod', 'disc_year']).size().unstack().transpose()
 method_year_counts = method_year_counts[method_year_counts.sum().sort_values().index]
 
@@ -691,9 +692,9 @@ print('% of planets w/ Null Mass: ', psc['st_mass'].isnull().sum()/psc['st_mass'
 # Stars mass appears to be nearly evenly distributed around the suns Mass
 fig, ax = plt.subplots(figsize=(10,5))
 
-ax.set_xlabel('Star Mass (Reletive to The Sun)')
-ax.set_ylabel('# of Stars')
-ax.set_title("Star's Mass")
+ax.set_xlabel('Star Mass (Relative to The Sun)', fontsize=12, fontweight='bold')
+ax.set_ylabel('Number of Stars', fontsize=12, fontweight='bold')
+ax.set_title("Star's Mass", fontsize=14, fontweight='bold')
 
 ax.hist(psc.st_mass,bins=200)
 plt.show()
