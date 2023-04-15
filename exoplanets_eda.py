@@ -270,6 +270,33 @@ plt.show()
 
 #%% Orbital Period
 
+# add new col to categorize by main discovery methods
+top_methods = psc.groupby(psc['discoverymethod']).size().sort_values(ascending=False)[0:3].index
+new_methods = {method: (method if method in top_methods else 'Others') for method in list(psc['discoverymethod'].unique())}
+psc['method2'] = psc['discoverymethod'].map(new_methods)
+
+# Boxplots based on discoverymethod
+box_vars = ['disc_year', 'pl_orbper', 'pl_rade', 'sy_dist', 'st_mass', \
+    'st_teff']
+fig, axes = plt.subplots(nrows=6, ncols=1, sharey='row',figsize = (10,20))
+x_labels = ['Discovery Year',"Planent Orbital Period (Eath Days)",\
+            "Planent Radius (Relative to Earth's Raduis)","System Distance \
+(Parsecs)","Star Mass (Relative to Sun's Mass)", "Star Temperature \
+(Kelvin)"]
+k = 0
+for i in range(6):
+    for j in range(1):
+        a = sns.boxplot(x=box_vars[k], y='discoverymethod', data=psc, orient='h', ax=axes[i])
+        a.set(ylabel=None)
+        a.set(xlabel=x_labels[k])
+        k += 1
+fig.subplots_adjust(hspace = 0.3, wspace=0.3)
+fig.suptitle('Boxplots of key numerical variables across different Discovery Methods')
+plt.show()
+
+
+
+
 box_vars = ['disc_year', 'pl_orbper', 'pl_rade', 'pl_bmasse', 'sy_dist', 'st_mass', 'st_lum', 'st_teff', 'st_met']
 fig, axes = plt.subplots(nrows=3, ncols=3, figsize=(15, 10), sharey='row')
 
@@ -285,6 +312,8 @@ for i in range(3):
 fig.suptitle('Boxplots of Key Numerical Variables Across Different Discovery Methods', fontsize=16, fontweight='bold')
 fig.subplots_adjust(hspace=0.4, wspace=0.3)
 plt.show()
+
+
 
 
 # Orbital Period
