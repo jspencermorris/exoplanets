@@ -7,6 +7,7 @@ import plotly.graph_objects as go
 import seaborn as sns
 import requests
 from tabulate import tabulate
+import tabulate
 
 
 #%% Import Data
@@ -75,12 +76,20 @@ psc.drop(['pl_controv_flag'], axis=1, inplace=True)
 # reset row indices
 psc.reset_index(drop=True, inplace=True)
 
-
-#%% Discovery Method
 # Descriptive statistics
-print(psc['discoverymethod'].describe())
-print(psc['discoverymethod'].unique())
-print(psc.groupby(psc['discoverymethod']).size().sort_values(ascending=False))
+method_counts = psc.groupby(psc['discoverymethod']).size().sort_values(ascending=False)
+method_stats = pd.DataFrame({
+    'Discovery Method': method_counts.index,
+    'Count': method_counts.values
+}).reset_index(drop=True)
+
+method_stats.index += 1
+
+headers = ["#", "\033[1mDiscovery Method\033[0m", "\033[1mCount\033[0m"]
+
+table = tabulate.tabulate(method_stats, headers=headers, tablefmt='fancy_grid')
+
+print(table)
 
 # barchart to compare number of discoveries by technique
 fig, axes = plt.subplots()
@@ -111,9 +120,26 @@ fig.suptitle('Boxplots of key numerical variables across different Discovery Met
 plt.show()
 
 
-#%% Discovery Year
-print(psc['disc_year'].describe())
-print(psc.groupby(psc['disc_year']).size())
+# Summary statistics for discovery year
+disc_year_stats = psc['disc_year'].describe().to_frame().reset_index().rename(
+    columns={'index': '\033[1mStatistic\033[0m', 'disc_year': '\033[1mValue\033[0m'}
+)
+
+# Group by year
+disc_year_counts = psc.groupby(psc['disc_year']).size().reset_index().rename(
+    columns={'disc_year': '\033[1mYear\033[0m', 0: '\033[1mCount\033[0m'}
+)
+
+# Format table
+table1 = tabulate.tabulate(disc_year_stats, headers='keys', tablefmt='fancy_grid', showindex=False)
+table2 = tabulate.tabulate(disc_year_counts, headers='keys', tablefmt='fancy_grid', showindex=False)
+
+# Print tables
+print('\n' + table1)
+print('\n' + table2)
+
+
+
 
 # cumulative plot to see how discoveries have trended over time
 fig, axes = plt.subplots()
@@ -176,13 +202,18 @@ fig.update_layout(
 )
 fig.show()
 
-# add new col to categorize by decade
+
+# table showing discovery method by decade
 decade_bins = [1990,2000,2010,2020,2030]
 decade_labels = ["1990's","2000's","2010's","2020's"]
 psc['disc_decade'] = pd.cut(psc['disc_year'].map(int), bins=decade_bins, labels=decade_labels, right=False, include_lowest=True)
+# Group by decade
+method_decade_counts = psc.groupby([psc['method2'], psc['disc_decade']]).size().unstack()
+headers = ['\033[1mDiscovery Method\033[0m'] + [f'\033[1m{col}\033[0m' for col in method_decade_counts.columns]
+table = tabulate.tabulate(method_decade_counts, headers=headers, tablefmt='fancy_grid')
 
-# table showing discovery method by decade
-print(psc.groupby([psc['method2'], psc['disc_decade']]).size().unstack())
+print(table)
+
 
 
 #%% Orbital Period
