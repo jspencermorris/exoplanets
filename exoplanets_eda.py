@@ -8,6 +8,8 @@ import seaborn as sns
 import requests
 from tabulate import tabulate
 import tabulate
+from scipy import stats
+
 
 
 #%% Import Data
