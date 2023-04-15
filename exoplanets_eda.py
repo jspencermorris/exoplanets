@@ -93,6 +93,7 @@ print(table)
 
 # barchart to compare number of discoveries by technique
 plt.style.use('seaborn')
+sns.set_style("whitegrid")
 fig, axes = plt.subplots(figsize=(8, 6))
 discovery_counts = psc['discoverymethod'].value_counts()
 discovery_counts.plot(kind='barh', ax=axes)
@@ -111,8 +112,6 @@ new_methods = {method: (method if method in top_methods else 'Others') for metho
 psc['method2'] = psc['discoverymethod'].map(new_methods)
 
 # Boxplots based on discoverymethod
-sns.set_style("whitegrid")
-
 box_vars = ['disc_year', 'pl_orbper', 'pl_rade', 'pl_bmasse', 'sy_dist', 'st_mass', 'st_lum', 'st_teff', 'st_met']
 
 fig, axes = plt.subplots(nrows=3, ncols=3, figsize=(15, 10), sharey='row')
@@ -159,6 +158,7 @@ print('\n' + table2)
 
 # cumulative plot to see how discoveries have trended over time
 plt.style.use('seaborn')
+sns.set_style("whitegrid")
 fig, axes = plt.subplots(figsize=(8, 6))
 year_counts = psc.groupby(psc['disc_year']).size().cumsum()
 axes.plot(year_counts.index, year_counts.values, marker='o')
@@ -174,6 +174,7 @@ print(psc.groupby([psc['discoverymethod'], psc['disc_year']]).size().unstack())
 ##############################################################################
 #discovery year
 plt.style.use('seaborn')
+sns.set_style("whitegrid")
 fig, axes = plt.subplots(figsize=(8, 6))
 discovery_counts = psc.groupby('disc_year').size()
 axes.plot(discovery_counts.index, discovery_counts.values)
@@ -190,7 +191,7 @@ pass
 ############################################################################
 #planent discover methods
 discovery_counts = psc.pivot_table(index='disc_year', columns='discoverymethod', values='pl_name', aggfunc='count')
-
+sns.set_style("whitegrid")
 # Create a line plot
 fig, ax = plt.subplots(figsize=(10,5))
 for column in discovery_counts.columns:
@@ -242,18 +243,23 @@ print(table)
 
 #%% Orbital Period
 # Boxplots based on discovery method
+
 box_vars = ['disc_year', 'pl_orbper', 'pl_rade', 'pl_bmasse', 'sy_dist', 'st_mass', 'st_lum', 'st_teff', 'st_met']
-fig, axes = plt.subplots(nrows=3, ncols=3, figsize=(12, 8), sharey='row')
+fig, axes = plt.subplots(nrows=3, ncols=3, figsize=(15, 10), sharey='row')
 
 k = 0
 for i in range(3):
     for j in range(3):
         a = sns.boxplot(x=box_vars[k], y='discoverymethod', data=psc, orient='h', ax=axes[i,j])
-        a.set(ylabel=None)
+        a.set_xlabel(box_vars[k].capitalize(), fontsize=12, fontweight='bold')
+        a.set_ylabel(None)
+        a.set_title(f"{box_vars[k].capitalize()} by Discovery Method", fontsize=14, fontweight='bold')
         k += 1
 
 fig.suptitle('Boxplots of Key Numerical Variables Across Different Discovery Methods', fontsize=16, fontweight='bold')
+fig.subplots_adjust(hspace=0.4, wspace=0.3)
 plt.show()
+
 
 # Orbital Period
 orb_period = psc['pl_orbper']
@@ -374,9 +380,9 @@ sns.set_style("whitegrid")
 sns.set_palette("Dark2")
 fig, ax = plt.subplots()
 sns.kdeplot(psc['pl_rade'], color='k', fill=True)
-ax.set_title('Density of Planet Radii')
-ax.set_xlabel('Planet Radius (relative to Earth)')
-ax.set_ylabel('Density')
+ax.set_title('Density of Planet Radii', fontweight='bold')
+ax.set_xlabel('Planet Radius (relative to Earth)', fontweight='bold')
+ax.set_ylabel('Density', fontweight='bold')
 plt.show()
 
 # overlapping histograms - radius
@@ -385,8 +391,8 @@ plt.hist(psc[psc['discoverymethod']=='Transit']['pl_rade'], label='Transit', bin
 plt.hist(psc[psc['discoverymethod']=='Radial Velocity']['pl_rade'], label='RV', bins=20, alpha=0.5)
 plt.hist(psc[psc['discoverymethod']=='Microlensing']['pl_rade'], label='Microlens', bins=20, alpha=0.5)
 plt.legend()
-plt.xlabel('Planet Radius (relative to Earth)')
-plt.ylabel('Counts')
+plt.xlabel('Planet Radius (relative to Earth)', fontweight='bold')
+plt.ylabel('Counts', fontweight='bold')
 plt.show()
 
 # overlapping histograms - radius, normalized
@@ -397,25 +403,25 @@ plt.hist(psc[psc['discoverymethod']=='Radial Velocity']['pl_rade'], label='RV', 
 plt.hist(psc[psc['discoverymethod']=='Microlensing']['pl_rade'], label='Microlens', bins=20, alpha=0.5, density=True)
 axes.set_xscale('linear')
 plt.legend()
-plt.xlabel('Planet Radius (relative to Earth)')
-plt.ylabel('Density')
+plt.xlabel('Planet Radius (relative to Earth)', fontweight='bold')
+plt.ylabel('Density', fontweight='bold')
 plt.show()
 
 # overlapping histograms - radius, w/ kde
 sns.set_style("white")
 sns.set_palette("Dark2")
 sns.histplot(data=psc, x="pl_rade", kde=True, hue='method2')
-plt.xlabel('Planet Radius (relative to Earth)')
-plt.ylabel('Counts')
+plt.xlabel('Planet Radius (relative to Earth)', fontweight='bold')
+plt.ylabel('Counts', fontweight='bold')
 plt.show()
 
 # histogram of - radius, zoom on sizes less than Neptune
 sns.set_palette("Dark2")
 fig, axes = plt.subplots()
 psc['pl_rade'].hist(bins=20, range=(0.5,3.5), density=True)
-plt.title('Distribution of Planet Radii')
-plt.xlabel('Planet Radius (relative to Earth)')
-plt.ylabel('Density')
+plt.title('Distribution of Planet Radii', fontweight='bold')
+plt.xlabel('Planet Radius (relative to Earth)', fontweight='bold')
+plt.ylabel('Density', fontweight='bold')
 kde = stats.gaussian_kde(psc['pl_rade'])
 xx = np.linspace(0, 3.5, 1000)
 axes.plot(xx, kde(xx))
@@ -466,9 +472,9 @@ plt.show()
 # Planets masses
 fig, ax = plt.subplots(figsize=(10,5))
 
-ax.set_xlabel('Planet Mass (relative to Earth)')
-ax.set_ylabel('# of Planets')
-ax.set_title('Planet Mass')
+ax.set_xlabel('Planet Mass (relative to Earth)', fontweight='bold')
+ax.set_ylabel('# of Planets', fontweight='bold')
+ax.set_title('Planet Mass', fontweight='bold')
 
 ax.hist(psc.pl_bmasse, bins=200)
 plt.show()
@@ -479,16 +485,16 @@ pass
 fig, axes = plt.subplots()
 axes.hist(psc['pl_bmasse'], bins=2000)
 axes.set_xlim(0,50)
-axes.set_xlabel('Planet Mass (relative to Earth)')
-axes.set_ylabel('# of Planets')
-axes.set_title('Planet Mass (Zoomed In)')
+axes.set_xlabel('Planet Mass (relative to Earth)', fontweight='bold')
+axes.set_ylabel('# of Planets', fontweight='bold')
+axes.set_title('Planet Mass (Zoomed In)', fontweight='bold')
 plt.show()
 
 ###############################################################################
 ax.hist(psc.pl_bmasse,bins=200)
-ax.set_xlabel('Planet Mass (relative to Earth)')
-ax.set_ylabel('# of Planets')
-ax.set_title('Planet Mass')
+ax.set_xlabel('Planet Mass (relative to Earth)', fontweight='bold')
+ax.set_ylabel('# of Planets', fontweight='bold')
+ax.set_title('Planet Mass', fontweight='bold')
 plt.show()
 pass
 
@@ -496,36 +502,44 @@ pass
 fig, ax = plt.subplots(figsize=(10,5))
 earthlike = psc[(psc.pl_bmasse) <=20]
 ax.hist(earthlike.pl_bmasse,bins=200)
-ax.set_xlabel('Planet Mass (relative to Earth)')
-ax.set_ylabel('# of Planets')
-ax.set_title('Planet Mass (Zoomed In)')
+ax.set_xlabel('Planet Mass (relative to Earth)', fontweight='bold')
+ax.set_ylabel('# of Planets', fontweight='bold')
+ax.set_title('Planet Mass (Zoomed In)', fontweight='bold')
 plt.show()
 ###############################################################################
 
 
 # boxplots - mass vs. method
-fig, axes = plt.subplots()
-psc['pl_bmasse'].groupby(psc['method2']).describe()
-axes.set_yscale('log')
+fig, axes = plt.subplots(figsize=(10, 5))
 sns.boxplot(data=psc, x='method2', y='pl_bmasse')
+axes.set_yscale('log')
+axes.set_xlabel('Discovery Method')
+axes.set_ylabel('Planet Mass (relative to Earth)')
+axes.set_title('Planet Mass vs. Discovery Method', fontweight='bold')
 plt.show()
 
 # boxplots - mass vs. decade
-fig, axes = plt.subplots()
-psc['pl_bmasse'].groupby(psc['disc_decade']).describe()
-axes.set_yscale('log')
+fig, axes = plt.subplots(figsize=(10, 5))
 sns.boxplot(data=psc, x='disc_decade', y='pl_bmasse')
+axes.set_yscale('log')
+axes.set_xlabel('Discovery Decade')
+axes.set_ylabel('Planet Mass (relative to Earth)')
+axes.set_title('Planet Mass vs. Discovery Decade', fontweight='bold')
 plt.show()
+
 
 # basic scatterplot of planet radius vs. mass
 # NOTE - there may be an outlier (convert from loglog back to linear to see)
 print(psc[['pl_rade','pl_bmasse']].describe())
 psc.plot.scatter(x='pl_bmasse', y='pl_rade', \
-    xlabel='Est. Planet Mass (relative to Earth)', \
-    ylabel='Planet Radius (relative to Earth)', \
+    xlabel='\nEst. Planet Mass (relative to Earth)\n', \
+    ylabel='\nPlanet Radius (relative to Earth)\n', \
     loglog=True)
-plt.title('Relationship of Planet Estimated Mass and Radius ')
+plt.title('Relationship of Planet Estimated Mass and Radius', fontweight='bold')
+plt.xlabel('Est. Planet Mass (relative to Earth)', fontweight='bold')
+plt.ylabel('Planet Radius (relative to Earth)', fontweight='bold')
 plt.show()
+
 
 # Scatterplot of planet radius vs. mass, colored by discovery method
 # NOTE - there may be an outlier (convert from loglog back to linear to see)
@@ -538,11 +552,11 @@ disc_method_colors = psc['discoverymethod'].map(disc_method_cmap)
 fig, axes = plt.subplots()
 axes.scatter(x=psc['pl_bmasse'], y=psc['pl_rade'], c=disc_method_colors, \
     alpha=0.5, edgecolors='none')
-axes.set_xlabel('Est. Planet Mass (relative to Earth)')
-axes.set_ylabel('Planet Radius (relative to Earth)')
+axes.set_xlabel('\nEst. Planet Mass (relative to Earth)\n', fontweight='bold')
+axes.set_ylabel('\nPlanet Radius (relative to Earth)\n', fontweight='bold')
 axes.set_xscale('log')
 axes.set_yscale('log')
-axes.set_title('Relationship of Planet Estimated Mass and Radius')
+axes.set_title('\nRelationship of Planet Estimated Mass and Radius\n', fontweight='bold')
 legend_colors = [ Line2D([0],[0],color='orange',lw=4,label='Transit'), \
     Line2D([0],[0],color='magenta',lw=4,label='Radial Velocity'), \
     Line2D([0],[0],color='green',lw=4,label='Microlensing'), \
@@ -575,11 +589,11 @@ print(psc.groupby(['bmasse_cat','rad_cat'])['pl_orbloc'].value_counts().unstack(
 #interesting cut off at 6
 fig, ax = plt.subplots(figsize=(10,5))
 
-ax.set_xlabel('Planents Density (Reletive to Earths)')
-ax.set_ylabel('# of Planents')
-ax.set_title("Planent's Density's")
+ax.set_xlabel("Planet Density (Relative to Earth's)", fontweight='bold')
+ax.set_ylabel('# of Planets', fontweight='bold')
+ax.set_title("Planet Densities", fontweight='bold')
 
-ax.hist(psc.pl_dens,bins=200)
+ax.hist(psc.pl_dens, bins=200)
 plt.show()
 pass
 ###############################################################################
@@ -593,18 +607,17 @@ print('% of planets w/ Null Distances: ', psc['sy_dist'].isnull().sum()/psc['sy_
 ###############################################################################
 # system distance vs density
 fig, ax = plt.subplots()
-ax.scatter(psc.sy_dist,psc.pl_dens)
+ax.scatter(psc.sy_dist, psc.pl_dens)
 
 # ax.set_xscale('log') 
 # ax.set_yscale('log')  
 plt.scatter(1, 1, c='red', marker='x', s=200,label ='Earth')
 
-ax.set_xlabel('System Distance')
-ax.set_ylabel('Planent Density')
-ax.set_title('System distance vs Planent density')
+ax.set_xlabel('System Distance', fontweight='bold')
+ax.set_ylabel('Planetary Density', fontweight='bold')
+ax.set_title('System Distance vs Planetary Density', fontweight='bold')
 ax.legend()
 plt.show()
-pass
 
 ###############################################################################
 
@@ -663,7 +676,7 @@ fig.add_trace(go.Scatter(
 fig.update_layout(
     xaxis_title='Planet Mass (Earth Masses)',
     yaxis_title='Planet Radius (Earth Radii)',
-    title='Planets with Mass and Radius Similar to Earth within 50 Light Years',
+    title='Planets with Mass and Radius Similar to Earth within 50 Light Years (Between 80% and 120%)',
     legend=dict(x=0, y=1)
 )
 fig.show()
