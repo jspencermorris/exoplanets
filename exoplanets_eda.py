@@ -240,10 +240,35 @@ table = tabulate.tabulate(method_decade_counts, headers=headers, tablefmt='fancy
 
 print(table)
 
+# Stacked bar chart of Discovery Method
+fig, axes = plt.subplots(figsize = (20,5))
 
+sorted_values = sorted(psc['discoverymethod'].value_counts(), reverse=True)
+bottom_vals = np.sum(sorted_values[3:])
+bottom_vals_list = [bottom_vals]
+top_vals = sorted_values[:3]
+top_vals.extend(bottom_vals_list)
+
+axes.barh('Total Discoveries',top_vals[0],label = 'Transit')
+
+others = list(psc.discoverymethod.value_counts().index[:3])
+others.extend(['All Other Techniques Combined'])
+
+for i in range(1,len(top_vals)):
+    if i ==1:
+        axes.barh('Total Discoveries',top_vals[i], left=top_vals[0], label=others[i])
+       
+    else:
+        axes.barh('Total Discoveries',top_vals[i], left=sum(top_vals[:i]), label=others[i])
+   
+axes.set_xlabel('Total Number of Discoveries')
+axes.set_title('Three Techniques account over 99% of all discoveries')
+axes.set_yticklabels([])
+axes.tick_params(axis='y', which='both', left=False)
+axes.legend()
+plt.show()
 
 #%% Orbital Period
-# Boxplots based on discovery method
 
 box_vars = ['disc_year', 'pl_orbper', 'pl_rade', 'pl_bmasse', 'sy_dist', 'st_mass', 'st_lum', 'st_teff', 'st_met']
 fig, axes = plt.subplots(nrows=3, ncols=3, figsize=(15, 10), sharey='row')
@@ -341,6 +366,7 @@ pl_orbr_bins = [0,0.5,1.55,10,40]
 pl_orbr_labels = ["Tight","Inner","Middle","Outer"]
 psc['pl_orbloc'] = pd.cut(psc['pl_orbr_est'].map(float, na_action='ignore'), bins=pl_orbr_bins, labels=pl_orbr_labels, right=False, include_lowest=True)
 
+# histogram of discovery methods
 
 #%% Planet Radius
 print(psc['pl_rade'].describe())
@@ -581,6 +607,8 @@ print(psc.groupby(['bmasse_cat','rad_cat'])['discoverymethod'].describe())
 print(psc.groupby(['bmasse_cat','rad_cat'])['discoverymethod'].value_counts().unstack())
 print(psc.groupby(['bmasse_cat'])['rad_cat'].value_counts().unstack())
 print(psc.groupby(['bmasse_cat','rad_cat'])['pl_orbloc'].value_counts().unstack())
+
+
 
 
 #%% Density
