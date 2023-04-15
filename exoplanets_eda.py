@@ -241,9 +241,6 @@ print(table)
 
 
 #%% Orbital Period
-import matplotlib.pyplot as plt
-import seaborn as sns
-
 # Boxplots based on discovery method
 box_vars = ['disc_year', 'pl_orbper', 'pl_rade', 'pl_bmasse', 'sy_dist', 'st_mass', 'st_lum', 'st_teff', 'st_met']
 fig, axes = plt.subplots(nrows=3, ncols=3, figsize=(12, 8), sharey='row')
@@ -354,50 +351,71 @@ plt.show()
 
 ###############################################################################
 #planent radious
-fig, ax = plt.subplots(figsize=(10,5))
+fig, ax = plt.subplots(figsize=(10, 5))
 
-ax.set_xlabel('Planents Radius (Reletive to Earths)')
-ax.set_ylabel('# of Planents')
-ax.set_title("Planent Radius")
+# Set x and y labels and title
+ax.set_xlabel('Planet Radius (Relative to Earths)', fontsize=12, fontweight='bold')
+ax.set_ylabel('# of Planets', fontsize=12, fontweight='bold')
+ax.set_title('Distribution of Planet Radii', fontsize=14, fontweight='bold')
 
-ax.hist(psc.pl_rade,bins=200)
+# Set number of bins and plot histogram
+num_bins = 200
+ax.hist(psc['pl_rade'], bins=num_bins, color='teal')
+
+# Show plot
 plt.show()
+
+
 pass
 ###############################################################################
 
 # density plot - radius
-sns.distplot(psc['pl_rade'], bins=100, color='k')
-plt.title('density of Planet Radii')
+sns.set_style("whitegrid")
+sns.set_palette("Dark2")
+fig, ax = plt.subplots()
+sns.kdeplot(psc['pl_rade'], color='k', fill=True)
+ax.set_title('Density of Planet Radii')
+ax.set_xlabel('Planet Radius (relative to Earth)')
+ax.set_ylabel('Density')
+plt.show()
+
+# overlapping histograms - radius
+sns.set_palette("Dark2")
+plt.hist(psc[psc['discoverymethod']=='Transit']['pl_rade'], label='Transit', bins=20, alpha=0.5)
+plt.hist(psc[psc['discoverymethod']=='Radial Velocity']['pl_rade'], label='RV', bins=20, alpha=0.5)
+plt.hist(psc[psc['discoverymethod']=='Microlensing']['pl_rade'], label='Microlens', bins=20, alpha=0.5)
+plt.legend()
 plt.xlabel('Planet Radius (relative to Earth)')
 plt.ylabel('Counts')
 plt.show()
 
-# overlapping histograms - radius
-plt.hist(psc[psc['discoverymethod']=='Transit']['pl_rade'], label='Transit', bins=20, alpha=0.5)
-plt.hist(psc[psc['discoverymethod']=='Radial Velocity']['pl_rade'], label='RV', bins=20, alpha=0.5)
-plt.hist(psc[psc['discoverymethod']=='Microlensing']['pl_rade'], label='Microlens', bins=20, alpha=0.5)
-plt.show()
-
 # overlapping histograms - radius, normalized
+sns.set_palette("Dark2")
 fig, axes = plt.subplots()
 plt.hist(psc[psc['discoverymethod']=='Transit']['pl_rade'], label='Transit', bins=20, alpha=0.5, density=True)
 plt.hist(psc[psc['discoverymethod']=='Radial Velocity']['pl_rade'], label='RV', bins=20, alpha=0.5, density=True)
 plt.hist(psc[psc['discoverymethod']=='Microlensing']['pl_rade'], label='Microlens', bins=20, alpha=0.5, density=True)
 axes.set_xscale('linear')
+plt.legend()
+plt.xlabel('Planet Radius (relative to Earth)')
+plt.ylabel('Density')
 plt.show()
 
 # overlapping histograms - radius, w/ kde
+sns.set_style("white")
+sns.set_palette("Dark2")
 sns.histplot(data=psc, x="pl_rade", kde=True, hue='method2')
-plt.show()
-
-# hisgoram of - radius, zoom on sizes less than Neptune
-from scipy import stats
-print(psc['pl_rade'].describe())
-fig, axes = plt.subplots()
-psc['pl_rade'].hist(bins=20, range=(0.5,3.5), density=True)
-plt.title('distribution of Planet Radii')
 plt.xlabel('Planet Radius (relative to Earth)')
 plt.ylabel('Counts')
+plt.show()
+
+# histogram of - radius, zoom on sizes less than Neptune
+sns.set_palette("Dark2")
+fig, axes = plt.subplots()
+psc['pl_rade'].hist(bins=20, range=(0.5,3.5), density=True)
+plt.title('Distribution of Planet Radii')
+plt.xlabel('Planet Radius (relative to Earth)')
+plt.ylabel('Density')
 kde = stats.gaussian_kde(psc['pl_rade'])
 xx = np.linspace(0, 3.5, 1000)
 axes.plot(xx, kde(xx))
@@ -445,34 +463,45 @@ axes.hist(psc['pl_bmasse'], bins=20)
 plt.show()
 
 ###############################################################################
-# Planents masses
+# Planets masses
 fig, ax = plt.subplots(figsize=(10,5))
 
-ax.set_xlabel('Planents Mass (Reletive to Earths)')
-ax.set_ylabel('# of Planents')
-ax.set_title('Planent Masses')
+ax.set_xlabel('Planet Mass (relative to Earth)')
+ax.set_ylabel('# of Planets')
+ax.set_title('Planet Mass')
 
-ax.hist(psc.pl_bmasse,bins=200)
+ax.hist(psc.pl_bmasse, bins=200)
 plt.show()
 pass
 ###############################################################################
 
-# histogram - mass, zoom1
+# Histogram - mass, zoom1
 fig, axes = plt.subplots()
 axes.hist(psc['pl_bmasse'], bins=2000)
 axes.set_xlim(0,50)
+axes.set_xlabel('Planet Mass (relative to Earth)')
+axes.set_ylabel('# of Planets')
+axes.set_title('Planet Mass (Zoomed In)')
 plt.show()
 
 ###############################################################################
 ax.hist(psc.pl_bmasse,bins=200)
+ax.set_xlabel('Planet Mass (relative to Earth)')
+ax.set_ylabel('# of Planets')
+ax.set_title('Planet Mass')
 plt.show()
 pass
 
-#plannets masses zoomed in 
+# Planet mass zoomed in 
 fig, ax = plt.subplots(figsize=(10,5))
 earthlike = psc[(psc.pl_bmasse) <=20]
 ax.hist(earthlike.pl_bmasse,bins=200)
+ax.set_xlabel('Planet Mass (relative to Earth)')
+ax.set_ylabel('# of Planets')
+ax.set_title('Planet Mass (Zoomed In)')
+plt.show()
 ###############################################################################
+
 
 # boxplots - mass vs. method
 fig, axes = plt.subplots()
