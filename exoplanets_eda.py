@@ -15,6 +15,8 @@ from scipy import stats
 #%% Import Data
 filename = 'PSCompPars_2023.04.04_17.16.52.csv'
 psc = pd.read_csv(filename, comment='#')
+pd.set_option('display.max_rows', 100)
+pd.set_option('display.width', 500)
 
 
 #%% Preliminary Analysis
@@ -67,6 +69,7 @@ psc.drop( psc[ psc['pl_bmasse'] > 3200 ].index, inplace=True)
 psc.drop( psc[ psc['pl_dens'] > 11.35 ].index, inplace=True)
 psc.drop( psc[ psc['st_mass'] > 120 ].index, inplace=True)
 psc.drop( psc[ psc['st_age'] > 13.8 ].index, inplace=True)
+psc.drop( psc[ psc['st_teff'] > 8000 ].index, inplace=True)
 
 # remove controversial objects then drop the controversial column
 psc.drop( psc[ psc['pl_controv_flag'] == 1 ].index, inplace=True)
@@ -323,7 +326,7 @@ orb_period = psc['pl_orbper']
 print('Summary Statistics for Orbital Period:')
 print(orb_period.describe())
 print('Number of Null Periods: ', orb_period.isnull().sum())
-print('% of planets w/ Null Periods: {:.2%}'.format(orb_period.isnull().sum() / len(orb_period)))
+print('Ratio of planets w/ Null Periods: {:.2%}'.format(orb_period.isnull().sum() / len(orb_period)))
 
 # Basic histogram - period
 fig, ax = plt.subplots()
@@ -497,15 +500,14 @@ plt.show()
 psc[ (psc['disc_year']<=1999) & (psc['pl_rade']<5) ]  # these 3 planets are tiny, detected by 'pulsar timing' (very special/unique), and were the first-ever detections!
 
 # add new col to categorize by radius
-rad_bins = [0, 0.75,1.25,3,8,15,4000]
-rad_labels = ["Sub-Terrestrial","Terrestrial","Super-Terrestrial","Sub-Giant", "Giant", "Super-Giant"]
-psc['rad_cat'] = pd.cut(psc['pl_rade'].map(int), bins=rad_bins, labels=rad_labels, right=False, include_lowest=True)
+rad_bins = [0,0.5,2,8,50]
+rad_labels = ["Tiny","Small","Medium","Large"]
+psc['rad_cat'] = pd.cut(psc['pl_rade'].map(float), bins=rad_bins, labels=rad_labels, right=False, include_lowest=True)
 print(psc.groupby('rad_cat').describe())
-psc.groupby('rad_cat')['discoverymethod'].describe()
+print(psc.groupby('rad_cat')['discoverymethod'].describe())
 print(psc.groupby('discoverymethod')['rad_cat'].describe())
 print(psc.groupby('disc_decade')['rad_cat'].describe())
 print(psc.groupby('pl_orbloc')['rad_cat'].describe())
-psc.groupby('rad_cat')['discoverymethod'].describe()
 print(psc.groupby('rad_cat')['discoverymethod'].value_counts().unstack())
 print(psc.groupby(['method2','rad_cat'])['rad_cat'].describe())
 print(psc.groupby(['method2','rad_cat'])['disc_decade'].value_counts().unstack())
@@ -625,9 +627,9 @@ plt.show()
 # add new col to categorize by mass
 m_bins = [0, 0.75,1.25,3,8,15,4000]
 m_labels = ["Sub-Terrestrial","Terrestrial","Super-Terrestrial","Sub-Giant", "Giant", "Super-Giant"]
-psc['bmasse_cat'] = pd.cut(psc['pl_bmasse'].map(int), bins=m_bins, labels=m_labels, right=False, include_lowest=True)
+psc['bmasse_cat'] = pd.cut(psc['pl_bmasse'].map(float), bins=m_bins, labels=m_labels, right=False, include_lowest=True)
 print(psc.groupby('bmasse_cat').describe())
-psc.groupby('bmasse_cat')['discoverymethod'].describe()
+print(psc.groupby('bmasse_cat')['discoverymethod'].describe())
 print(psc.groupby('discoverymethod')['bmasse_cat'].describe())
 print(psc.groupby('disc_decade')['bmasse_cat'].describe())
 print(psc.groupby('pl_orbloc')['bmasse_cat'].describe())
@@ -638,7 +640,7 @@ print(psc.groupby(['bmasse_cat','rad_cat'])['discoverymethod'].describe())
 print(psc.groupby(['bmasse_cat','rad_cat'])['discoverymethod'].value_counts().unstack())
 print(psc.groupby(['bmasse_cat'])['rad_cat'].value_counts().unstack())
 print(psc.groupby(['bmasse_cat','rad_cat'])['pl_orbloc'].value_counts().unstack())
-
+print(psc.groupby('bmasse_cat')['pl_bmasse'].describe())
 
 
 
@@ -662,7 +664,7 @@ pass
 #%% System Distance
 print(psc['sy_dist'].describe())
 print('Null Distances: ', psc['sy_dist'].isnull().sum())
-print('% of planets w/ Null Distances: ', psc['sy_dist'].isnull().sum()/psc['sy_dist'].size)
+print('Ratio of planets w/ Null Distances: ', psc['sy_dist'].isnull().sum()/psc['sy_dist'].size)
 
 ###############################################################################
 # system distance vs density
@@ -745,7 +747,7 @@ fig.show()
 #%% Star Mass
 print(psc['st_mass'].describe())
 print('Null Mass: ', psc['st_mass'].isnull().sum())
-print('% of planets w/ Null Mass: ', psc['st_mass'].isnull().sum()/psc['st_mass'].size)
+print('Ratio of planets w/ Null Mass: ', psc['st_mass'].isnull().sum()/psc['st_mass'].size)
 
 ###############################################################################
 # Stars mass appears to be nearly evenly distributed around the suns Mass
@@ -764,13 +766,13 @@ pass
 #%% Star Spectral Type
 print(psc['st_spectype'].describe())
 print('Null Spectral Type: ', psc['st_spectype'].isnull().sum())
-print('% of planets w/ Null Spectral Type: ', psc['st_spectype'].isnull().sum()/psc['st_spectype'].size)
+print('Ratio of planets w/ Null Spectral Type: ', psc['st_spectype'].isnull().sum()/psc['st_spectype'].size)
 
 
 #%% Star Luminosity
 print(psc['st_lum'].describe())
 print('Null Luminosity: ', psc['st_lum'].isnull().sum())
-print('% of planets w/ Null Luminosity: ', psc['st_lum'].isnull().sum()/psc['st_lum'].size)
+print('Ratio of planets w/ Null Luminosity: ', psc['st_lum'].isnull().sum()/psc['st_lum'].size)
 
 ###############################################################################
 # Stars mass vs Luminosity
@@ -803,19 +805,19 @@ plt.show()
 #%% Star Effective Temperature
 print(psc['st_teff'].describe())
 print('Null Effective Temp: ', psc['st_teff'].isnull().sum())
-print('% of planets w/ Null Effective Temp: ', psc['st_teff'].isnull().sum()/psc['st_teff'].size)
+print('Ratio of planets w/ Null Effective Temp: ', psc['st_teff'].isnull().sum()/psc['st_teff'].size)
 
 
 #%% Star Metallicity
 print(psc['st_met'].describe())
 print('Null Metallicity: ', psc['st_met'].isnull().sum())
-print('% of planets w/ Null Metallicity: ', psc['st_met'].isnull().sum()/psc['st_met'].size)
+print('Ratio of planets w/ Null Metallicity: ', psc['st_met'].isnull().sum()/psc['st_met'].size)
 
 
 #%% Star Age
 print(psc['st_age'].describe())
 print('Null Age: ', psc['st_age'].isnull().sum())
-print('% of planets w/ Null Age: ', psc['st_age'].isnull().sum()/psc['st_age'].size)
+print('Ratio of planets w/ Null Age: ', psc['st_age'].isnull().sum()/psc['st_age'].size)
 
 # Scatterplot of star's metallicity and age and planet's density
 print('METALICITY\n',psc['st_met'].describe())
@@ -879,7 +881,7 @@ print(psc_spec.groupby('pl_orbloc')['spec_cat'].value_counts().unstack())
 print(psc_spec.groupby('rad_cat')['spec_cat'].value_counts().unstack())
 print(psc_spec.groupby('bmasse_cat')['spec_cat'].value_counts().unstack())
 print(psc_spec.groupby(['bmasse_cat','rad_cat'])['spec_cat'].value_counts().unstack())
-
+print(psc_spec.groupby(['pl_orbloc','bmasse_cat','rad_cat'])['spec_cat'].value_counts().unstack())
 
 #%% new 
 
