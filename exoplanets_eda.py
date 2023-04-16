@@ -12,11 +12,10 @@ from scipy import stats
 
 
 
+
 #%% Import Data
 filename = 'PSCompPars_2023.04.04_17.16.52.csv'
 psc = pd.read_csv(filename, comment='#')
-pd.set_option('display.max_rows', 100)
-pd.set_option('display.width', 500)
 
 
 #%% Preliminary Analysis
@@ -69,7 +68,6 @@ psc.drop( psc[ psc['pl_bmasse'] > 3200 ].index, inplace=True)
 psc.drop( psc[ psc['pl_dens'] > 11.35 ].index, inplace=True)
 psc.drop( psc[ psc['st_mass'] > 120 ].index, inplace=True)
 psc.drop( psc[ psc['st_age'] > 13.8 ].index, inplace=True)
-psc.drop( psc[ psc['st_teff'] > 8000 ].index, inplace=True)
 
 # remove controversial objects then drop the controversial column
 psc.drop( psc[ psc['pl_controv_flag'] == 1 ].index, inplace=True)
@@ -81,7 +79,6 @@ psc.drop(['pl_controv_flag'], axis=1, inplace=True)
 # reset row indices
 psc.reset_index(drop=True, inplace=True)
 
-# Descriptive statistics
 method_counts = psc.groupby(psc['discoverymethod']).size().sort_values(ascending=False)
 method_stats = pd.DataFrame({
     'Discovery Method': method_counts.index,
@@ -94,7 +91,11 @@ headers = ["#", "\033[1mDiscovery Method\033[0m", "\033[1mCount\033[0m"]
 
 table = tabulate.tabulate(method_stats, headers=headers, tablefmt='fancy_grid')
 
+title = "\033[1mThree Techniques Account for Over 99% of All Discoveries\033[0m"
+
+print(title)
 print(table)
+
 
 # barchart to compare number of discoveries by technique
 plt.style.use('seaborn')
@@ -140,23 +141,29 @@ plt.show()
 
 
 
-# Summary statistics for discovery year
-disc_year_stats = psc['disc_year'].describe().to_frame().reset_index().rename(
-    columns={'index': '\033[1mStatistic\033[0m', 'disc_year': '\033[1mValue\033[0m'}
-)
+# Bin years into five-year periods
+bins = [1990, 1995, 2000, 2005, 2010, 2015, 2020, 2025]
+labels = ['1990-1994', '1995-1999', '2000-2004', '2005-2009', '2010-2014', '2015-2019', '2020-2025']
+period = pd.cut(psc['disc_year'], bins=bins, labels=labels)
 
-# Group by year
-disc_year_counts = psc.groupby(psc['disc_year']).size().reset_index().rename(
-    columns={'disc_year': '\033[1mYear\033[0m', 0: '\033[1mCount\033[0m'}
-)
+# Compute counts and cumulative counts by period
+counts_by_period = psc.groupby(period)['disc_year'].count()
+cumulative_counts_by_period = counts_by_period.cumsum()
 
-# Format table
-table1 = tabulate.tabulate(disc_year_stats, headers='keys', tablefmt='fancy_grid', showindex=False)
-table2 = tabulate.tabulate(disc_year_counts, headers='keys', tablefmt='fancy_grid', showindex=False)
+# Compute percentage of total exoplanets discovered in each period
+percent_of_total_by_period = (counts_by_period / cumulative_counts_by_period.iloc[-1] * 100).round(1)
 
-# Print tables
-print('\n' + table1)
-print('\n' + table2)
+# Combine counts, cumulative counts, and percentage of total into a table
+periodic_counts_table = pd.concat([counts_by_period, cumulative_counts_by_period, percent_of_total_by_period], axis=1)
+periodic_counts_table.columns = ['Count', 'Cumulative', '% of Total']
+periodic_counts_table.index.name = 'Period'
+
+# Format and print table
+table = tabulate.tabulate(periodic_counts_table, headers='keys', tablefmt='fancy_grid', floatfmt=".1f")
+title = "\033[1mExoplanet Discoveries Accelerated in the 2010s\033[0m"
+print(title)
+print(table)
+
 
 
 
@@ -169,7 +176,7 @@ year_counts = psc.groupby(psc['disc_year']).size().cumsum()
 axes.plot(year_counts.index, year_counts.values, marker='o')
 axes.set_xlabel('Year of Discovery', fontsize=12, fontweight='bold')
 axes.set_ylabel('Cumulative Number of Discoveries', fontsize=12, fontweight='bold')
-axes.set_title("Exoplanet Discoveries Accelerated in the 2010's", fontsize=14, fontweight='bold')
+axes.set_title("Exoplanet Discoveries Accelerated in the 2010s", fontsize=14, fontweight='bold')
 axes.grid(color='lightgray', linestyle='--')
 plt.show()
 
@@ -226,7 +233,7 @@ for method in method_year_counts.columns:
     fig.add_trace(go.Bar(x=method_year_counts.index, y=method_year_counts[method], name=legend_label))
 
 fig.update_layout(
-    title='Exoplanet Discoveries by Observing Method Over Time',
+    title='Exoplanet Discoveries by Observing Method',
     xaxis_title='Year',
     yaxis_title='Number of Exoplanet Discoveries',
     barmode='stack'
@@ -234,16 +241,21 @@ fig.update_layout(
 fig.show()
 
 
-# table showing discovery method by decade
 decade_bins = [1990,2000,2010,2020,2030]
 decade_labels = ["1990's","2000's","2010's","2020's"]
 psc['disc_decade'] = pd.cut(psc['disc_year'].map(int), bins=decade_bins, labels=decade_labels, right=False, include_lowest=True)
+
 # Group by decade
 method_decade_counts = psc.groupby([psc['method2'], psc['disc_decade']]).size().unstack()
 headers = ['\033[1mDiscovery Method\033[0m'] + [f'\033[1m{col}\033[0m' for col in method_decade_counts.columns]
+
 table = tabulate.tabulate(method_decade_counts, headers=headers, tablefmt='fancy_grid')
 
+title = "\033[1mExoplanet Discoveries by Observing Method\033[0m"
+
+print(title)
 print(table)
+
 
 # Stacked bar chart of Discovery Method
 fig, axes = plt.subplots(figsize = (20,5))
@@ -326,7 +338,7 @@ orb_period = psc['pl_orbper']
 print('Summary Statistics for Orbital Period:')
 print(orb_period.describe())
 print('Number of Null Periods: ', orb_period.isnull().sum())
-print('Ratio of planets w/ Null Periods: {:.2%}'.format(orb_period.isnull().sum() / len(orb_period)))
+print('% of planets w/ Null Periods: {:.2%}'.format(orb_period.isnull().sum() / len(orb_period)))
 
 # Basic histogram - period
 fig, ax = plt.subplots()
@@ -370,22 +382,30 @@ plt.show()
 
 
 # Boxplots of period based on method2 and disc_decade
-print(psc.groupby('disc_decade')['pl_orbper'].describe())
-print(psc.groupby('method2')['pl_orbper'].describe())
-print(psc['pl_orbper'].isnull().groupby(psc['method2']).sum())
 fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(12, 6))
 sns.boxplot(x='disc_decade', y='pl_orbper', data=psc, orient='v', ax=ax1)
 sns.boxplot(x='method2', y='pl_orbper', data=psc, orient='v', ax=ax2)
 ax1.set_yscale('log')
 ax2.set_yscale('log')
-ax1.set_title('Period Boxplots by Decade', fontsize=14, fontweight='bold')
+ax1.set_title('Orbital Period by Decade', fontsize=14, fontweight='bold')
 ax1.set_xlabel('Discovery Decade', fontsize=12, fontweight='bold')
 ax1.set_ylabel('Orbital Period (days)', fontsize=12, fontweight='bold')
-ax2.set_title('Period Boxplots by Discovery Method', fontsize=14, fontweight='bold')
+ax2.set_title('Orbital Period by Discovery Method', fontsize=14, fontweight='bold')
 ax2.set_xlabel('Discovery Method', fontsize=12, fontweight='bold')
 ax2.set_ylabel('Orbital Period (days)', fontsize=12, fontweight='bold')
-
 plt.show()
+
+# Calculate summary statistics by method2 and disc_decade
+method_decade_stats = psc.groupby(['method2', 'disc_decade'])['pl_orbper'].agg(['mean', 'std', 'min', 'max']).reset_index()
+method_decade_stats.columns = ['Discovery Method', 'Discovery Decade', 'Mean Orbital Period', 'Standard Deviation', 'Minimum Orbital Period', 'Maximum Orbital Period']
+
+# Format and print table
+table = tabulate.tabulate(method_decade_stats, headers='keys', tablefmt='fancy_grid')
+print('\033[1mOrbital Period by Discovery Decade and Discovery Method\033[0m')
+print(table)
+
+
+
 
 
 # create new col to estimate mean distance from host star, in AU
@@ -488,29 +508,30 @@ xx = np.linspace(0, 3.5, 1000)
 axes.plot(xx, kde(xx))
 plt.show()
 
-# boxplots - radius vs. method
-psc['pl_rade'].groupby(psc['method2']).describe()
-sns.boxplot(data=psc, x='method2', y='pl_rade')
-plt.show()
-
-# boxplots - radius vs. decade
-psc['pl_rade'].groupby(psc['disc_decade']).describe()
-sns.boxplot(data=psc, x='disc_decade', y='pl_rade')
-plt.show()
-psc[ (psc['disc_year']<=1999) & (psc['pl_rade']<5) ]  # these 3 planets are tiny, detected by 'pulsar timing' (very special/unique), and were the first-ever detections!
-
 # add new col to categorize by radius
-rad_bins = [0,0.5,2,8,50]
-rad_labels = ["Tiny","Small","Medium","Large"]
-psc['rad_cat'] = pd.cut(psc['pl_rade'].map(float), bins=rad_bins, labels=rad_labels, right=False, include_lowest=True)
-print(psc.groupby('rad_cat').describe())
-print(psc.groupby('rad_cat')['discoverymethod'].describe())
-print(psc.groupby('discoverymethod')['rad_cat'].describe())
-print(psc.groupby('disc_decade')['rad_cat'].describe())
-print(psc.groupby('pl_orbloc')['rad_cat'].describe())
-print(psc.groupby('rad_cat')['discoverymethod'].value_counts().unstack())
-print(psc.groupby(['method2','rad_cat'])['rad_cat'].describe())
-print(psc.groupby(['method2','rad_cat'])['disc_decade'].value_counts().unstack())
+rad_bins = [0, 0.75, 1.25, 3, 8, 15, 4000]
+rad_labels = ["Sub-Terrestrial", "Terrestrial", "Super-Terrestrial", "Sub-Giant", "Giant", "Super-Giant"]
+psc['rad_cat'] = pd.cut(psc['pl_rade'].map(int), bins=rad_bins, labels=rad_labels, right=False, include_lowest=True)
+
+# boxplots - radius vs. method and decade
+fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(12, 6))
+sns.boxplot(data=psc, x='disc_decade', y='pl_rade', ax=ax1)
+sns.boxplot(data=psc, x='method2', y='pl_rade', ax=ax2)
+ax1.set_title('Planet Radius by Discovery Decade', fontsize=14, fontweight='bold')
+ax1.set_xlabel('Discovery Decade', fontsize=12, fontweight='bold')
+ax1.set_ylabel('Planet Radius (Earth radii)', fontsize=12, fontweight='bold')
+ax2.set_title('Planet Radius by Discovery Method', fontsize=14, fontweight='bold')
+ax2.set_xlabel('Discovery Method', fontsize=12, fontweight='bold')
+ax2.set_ylabel('Planet Radius (Earth radii)', fontsize=12, fontweight='bold')
+plt.show()
+
+# summary stats
+rad_method_decade_stats = psc.groupby(['disc_decade', 'method2'])['pl_rade'].agg(['mean', 'std', 'min', 'max']).reset_index()
+rad_method_decade_stats.columns = ['Discovery Decade', 'Discovery Method', 'Mean Radius', 'Standard Deviation', 'Minimum Radius', 'Maximum Radius']
+
+table = tabulate.tabulate(rad_method_decade_stats, headers='keys', tablefmt='fancy_grid')
+print('\033[1mPlanet Radius by Discovery Decade and Discovery Method\033[0m')
+print(table)
 
 
 #%% Mass
@@ -568,24 +589,30 @@ ax.set_title('Planet Mass (Zoomed In)', fontweight='bold')
 plt.show()
 ###############################################################################
 
-
-# boxplots - mass vs. method
-fig, axes = plt.subplots(figsize=(10, 5))
-sns.boxplot(data=psc, x='method2', y='pl_bmasse')
-axes.set_yscale('log')
-axes.set_xlabel('Discovery Method')
-axes.set_ylabel('Planet Mass (relative to Earth)')
-axes.set_title('Planet Mass vs. Discovery Method', fontweight='bold')
+# boxplots - mass vs. method and decade
+fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(12, 6))
+sns.boxplot(data=psc, x='method2', y='pl_bmasse', ax=ax1)
+sns.boxplot(data=psc, x='disc_decade', y='pl_bmasse', ax=ax2)
+ax1.set_yscale('log')
+ax2.set_yscale('log')
+ax1.set_title('Planet Mass by Discovery Method', fontsize=14, fontweight='bold')
+ax1.set_xlabel('Discovery Method', fontsize=12, fontweight='bold')
+ax1.set_ylabel('Planet Mass (relative to Earth)', fontsize=12, fontweight='bold')
+ax2.set_title('Planet Mass by Discovery Decade', fontsize=14, fontweight='bold')
+ax2.set_xlabel('Discovery Decade', fontsize=12, fontweight='bold')
+ax2.set_ylabel('Planet Mass (relative to Earth)', fontsize=12, fontweight='bold')
 plt.show()
 
-# boxplots - mass vs. decade
-fig, axes = plt.subplots(figsize=(10, 5))
-sns.boxplot(data=psc, x='disc_decade', y='pl_bmasse')
-axes.set_yscale('log')
-axes.set_xlabel('Discovery Decade')
-axes.set_ylabel('Planet Mass (relative to Earth)')
-axes.set_title('Planet Mass vs. Discovery Decade', fontweight='bold')
-plt.show()
+# summary stats
+mass_method_decade_stats = psc.groupby(['method2', 'disc_decade'])['pl_bmasse'].agg(['count', 'mean']).reset_index()
+mass_method_decade_stats.columns = ['Discovery Method', 'Discovery Decade', 'Count', 'Mean Mass']
+
+table = tabulate.tabulate(mass_method_decade_stats, headers='keys', tablefmt='fancy_grid')
+print('\033[1mPlanet Mass by Discovery Method and Discovery Decade\033[0m')
+print(table)
+
+# add line break after table
+print('\n')
 
 
 # basic scatterplot of planet radius vs. mass
@@ -622,26 +649,67 @@ legend_colors = [ Line2D([0],[0],color='orange',lw=4,label='Transit'), \
     Line2D([0],[0],color='green',lw=4,label='Microlensing'), \
     Line2D([0],[0],color='black',lw=4,label='Others') ]
 plt.legend(handles=legend_colors, loc='best')
+
+# add Earth and Jupiter as separate points
+earth_mass = 1.0
+earth_radius = 1.0
+jupiter_mass = 317.8
+jupiter_radius = 11.2
+
+axes.scatter([earth_mass], [earth_radius], c='deepskyblue', marker='o', s=150, edgecolors='k', linewidths=1.5, label='Earth')
+axes.scatter([jupiter_mass], [jupiter_radius], c='red', marker='o', s=150, edgecolors='k', linewidths=1.5, label='Jupiter')
+
+# add legend for Earth and Jupiter
+legend_earth = Line2D([0], [0], marker='o', color='deepskyblue', label='Earth', markersize=10, markerfacecolor='deepskyblue')
+legend_jupiter = Line2D([0], [0], marker='o', color='red', label='Jupiter', markersize=10, markerfacecolor='red')
+plt.legend(handles=[legend_colors[0], legend_colors[1], legend_colors[2], legend_colors[3], legend_earth, legend_jupiter], loc='best')
+
 plt.show()
 
-# add new col to categorize by mass
-m_bins = [0, 0.75,1.25,3,8,15,4000]
-m_labels = ["Sub-Terrestrial","Terrestrial","Super-Terrestrial","Sub-Giant", "Giant", "Super-Giant"]
-psc['bmasse_cat'] = pd.cut(psc['pl_bmasse'].map(float), bins=m_bins, labels=m_labels, right=False, include_lowest=True)
-print(psc.groupby('bmasse_cat').describe())
-print(psc.groupby('bmasse_cat')['discoverymethod'].describe())
-print(psc.groupby('discoverymethod')['bmasse_cat'].describe())
-print(psc.groupby('disc_decade')['bmasse_cat'].describe())
-print(psc.groupby('pl_orbloc')['bmasse_cat'].describe())
-print(psc.groupby('bmasse_cat')['discoverymethod'].value_counts().unstack())
-print(psc.groupby(['method2','bmasse_cat'])['bmasse_cat'].describe())
-print(psc.groupby(['method2','bmasse_cat'])['disc_decade'].value_counts().unstack())
-print(psc.groupby(['bmasse_cat','rad_cat'])['discoverymethod'].describe())
-print(psc.groupby(['bmasse_cat','rad_cat'])['discoverymethod'].value_counts().unstack())
-print(psc.groupby(['bmasse_cat'])['rad_cat'].value_counts().unstack())
-print(psc.groupby(['bmasse_cat','rad_cat'])['pl_orbloc'].value_counts().unstack())
-print(psc.groupby('bmasse_cat')['pl_bmasse'].describe())
 
+#Tables
+#m_bins = [0, 0.75, 1.25, 3, 8, 15, 4000]
+#m_labels = ["Sub-Terrestrial", "Terrestrial", "Super-Terrestrial", "Sub-Giant", "Giant", "Super-Giant"]
+#psc['bmasse_cat'] = pd.cut(psc['pl_bmasse'].map(int), bins=m_bins, labels=m_labels, right=False, include_lowest=True)
+# add new col to categorize by mass
+#m_bins = [0, 0.75,1.25,3,8,15,4000]
+#m_labels = ["Sub-Terrestrial","Terrestrial","Super-Terrestrial","Sub-Giant", "Giant", "Super-Giant"]
+#psc['bmasse_cat'] = pd.cut(psc['pl_bmasse'].map(int), bins=m_bins, labels=m_labels, right=False, include_lowest=True)
+#print(psc.groupby('bmasse_cat').describe())
+#psc.groupby('bmasse_cat')['discoverymethod'].describe()
+#print(psc.groupby('discoverymethod')['bmasse_cat'].describe())
+#print(psc.groupby('disc_decade')['bmasse_cat'].describe())
+#print(psc.groupby('pl_orbloc')['bmasse_cat'].describe())
+#print(psc.groupby('bmasse_cat')['discoverymethod'].value_counts().unstack())
+#print(psc.groupby(['method2','bmasse_cat'])['bmasse_cat'].describe())
+#print(psc.groupby(['method2','bmasse_cat'])['disc_decade'].value_counts().unstack())
+#print(psc.groupby(['bmasse_cat','rad_cat'])['discoverymethod'].describe())
+#print(psc.groupby(['bmasse_cat','rad_cat'])['discoverymethod'].value_counts().unstack())
+#print(psc.groupby(['bmasse_cat'])['rad_cat'].value_counts().unstack())
+#print(psc.groupby(['bmasse_cat','rad_cat'])['pl_orbloc'].value_counts().unstack())
+
+from tabulate import tabulate #for some reason I have to call it here again otherwise it errors out.
+
+#Relationship of Planet Estimated Mass and Radius Table
+m_bins = [0, 0.75, 1.25, 3, 8, 15, 4000]
+m_labels = ["Sub-Terrestrial", "Terrestrial", "Super-Terrestrial", "Sub-Giant", "Giant", "Super-Giant"]
+psc['bmasse_cat'] = pd.cut(psc['pl_bmasse'].map(int), bins=m_bins, labels=m_labels, right=False, include_lowest=True)
+
+bmasse_cat_stats = psc.groupby('bmasse_cat')['pl_bmasse'].describe()
+pl_orbloc_stats = psc.groupby('pl_orbloc')['bmasse_cat'].describe()
+table = tabulate(
+    bmasse_cat_stats.reset_index(),
+    headers=['', 'count', 'mean', 'std', 'min', '25%', '50%', '75%', 'max'],
+    showindex='never', tablefmt='fancy_grid')
+table += '\n\n'
+table += tabulate(
+    pl_orbloc_stats.reset_index(),
+    headers=['', 'count', 'unique', 'top', 'freq'],
+    showindex='never', tablefmt='fancy_grid')
+
+# print the table with title
+print('\033[1mRelationship of Planet Estimated Mass and Radius\033[0m')
+print(table)
 
 
 #%% Density
@@ -664,7 +732,7 @@ pass
 #%% System Distance
 print(psc['sy_dist'].describe())
 print('Null Distances: ', psc['sy_dist'].isnull().sum())
-print('Ratio of planets w/ Null Distances: ', psc['sy_dist'].isnull().sum()/psc['sy_dist'].size)
+print('% of planets w/ Null Distances: ', psc['sy_dist'].isnull().sum()/psc['sy_dist'].size)
 
 ###############################################################################
 # system distance vs density
@@ -747,7 +815,7 @@ fig.show()
 #%% Star Mass
 print(psc['st_mass'].describe())
 print('Null Mass: ', psc['st_mass'].isnull().sum())
-print('Ratio of planets w/ Null Mass: ', psc['st_mass'].isnull().sum()/psc['st_mass'].size)
+print('% of planets w/ Null Mass: ', psc['st_mass'].isnull().sum()/psc['st_mass'].size)
 
 ###############################################################################
 # Stars mass appears to be nearly evenly distributed around the suns Mass
@@ -766,13 +834,13 @@ pass
 #%% Star Spectral Type
 print(psc['st_spectype'].describe())
 print('Null Spectral Type: ', psc['st_spectype'].isnull().sum())
-print('Ratio of planets w/ Null Spectral Type: ', psc['st_spectype'].isnull().sum()/psc['st_spectype'].size)
+print('% of planets w/ Null Spectral Type: ', psc['st_spectype'].isnull().sum()/psc['st_spectype'].size)
 
 
 #%% Star Luminosity
 print(psc['st_lum'].describe())
 print('Null Luminosity: ', psc['st_lum'].isnull().sum())
-print('Ratio of planets w/ Null Luminosity: ', psc['st_lum'].isnull().sum()/psc['st_lum'].size)
+print('% of planets w/ Null Luminosity: ', psc['st_lum'].isnull().sum()/psc['st_lum'].size)
 
 ###############################################################################
 # Stars mass vs Luminosity
@@ -805,19 +873,19 @@ plt.show()
 #%% Star Effective Temperature
 print(psc['st_teff'].describe())
 print('Null Effective Temp: ', psc['st_teff'].isnull().sum())
-print('Ratio of planets w/ Null Effective Temp: ', psc['st_teff'].isnull().sum()/psc['st_teff'].size)
+print('% of planets w/ Null Effective Temp: ', psc['st_teff'].isnull().sum()/psc['st_teff'].size)
 
 
 #%% Star Metallicity
 print(psc['st_met'].describe())
 print('Null Metallicity: ', psc['st_met'].isnull().sum())
-print('Ratio of planets w/ Null Metallicity: ', psc['st_met'].isnull().sum()/psc['st_met'].size)
+print('% of planets w/ Null Metallicity: ', psc['st_met'].isnull().sum()/psc['st_met'].size)
 
 
 #%% Star Age
 print(psc['st_age'].describe())
 print('Null Age: ', psc['st_age'].isnull().sum())
-print('Ratio of planets w/ Null Age: ', psc['st_age'].isnull().sum()/psc['st_age'].size)
+print('% of planets w/ Null Age: ', psc['st_age'].isnull().sum()/psc['st_age'].size)
 
 # Scatterplot of star's metallicity and age and planet's density
 print('METALICITY\n',psc['st_met'].describe())
@@ -851,8 +919,26 @@ plt.show()
 
 # plot to compare the systems w/ most Earth-like planets w/ Sol system
 systems_2_hosts = earth_like_planets['hostname'].unique()
-systems_2 = psc [ psc['hostname'].isin(systems_2_hosts)]
-sns.relplot(data=systems_2, x='pl_orbr_est', y='hostname', size='pl_bmasse')
+systems_2 = psc[psc['hostname'].isin(systems_2_hosts)]
+
+# create a data frame with planet information
+solar_system = pd.DataFrame({
+    'pl_name': ['Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter'],
+    'hostname': ['Sun', 'Sun', 'Sun', 'Sun', 'Sun'],
+    'pl_orbr_est': [0.387, 0.723, 1.0, 1.524, 5.203],
+    'pl_rade': [0.383, 0.949, 1.0, 0.532, 10.973],
+    'pl_bmasse': [0.0553, 0.815, 1.0, 0.107, 317.8],
+    'pl_dens': [5.427, 5.243, 5.515, 3.933, 1.326]
+})
+
+# concatenate the two data frames
+systems_2 = pd.concat([systems_2, solar_system])
+
+sns.relplot(data=systems_2, x='pl_orbr_est', y='hostname', size='pl_bmasse', height=5, aspect=4.0)
+plt.xlabel('Total Planet Orbital Estimate (AU)', fontweight='bold')
+plt.ylabel('Host Star', fontweight='bold')
+plt.text(5.5, -0.25, 'Note: Saturn, Uranus, and Neptune are not pictured in this plot.')
+plt.title('Orbital Estimates of Earth-Like Planets and Their Stars', fontweight='bold')
 plt.show()
 
 
@@ -881,7 +967,7 @@ print(psc_spec.groupby('pl_orbloc')['spec_cat'].value_counts().unstack())
 print(psc_spec.groupby('rad_cat')['spec_cat'].value_counts().unstack())
 print(psc_spec.groupby('bmasse_cat')['spec_cat'].value_counts().unstack())
 print(psc_spec.groupby(['bmasse_cat','rad_cat'])['spec_cat'].value_counts().unstack())
-print(psc_spec.groupby(['pl_orbloc','bmasse_cat','rad_cat'])['spec_cat'].value_counts().unstack())
+
 
 #%% new 
 
