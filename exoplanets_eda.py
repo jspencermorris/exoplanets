@@ -6,12 +6,8 @@ from matplotlib.lines import Line2D
 import plotly.graph_objects as go
 import seaborn as sns
 import requests
-from tabulate import tabulate
 import tabulate
 from scipy import stats
-
-
-
 
 #%% Import Data
 filename = 'PSCompPars_2023.04.04_17.16.52.csv'
@@ -163,10 +159,6 @@ table = tabulate.tabulate(periodic_counts_table, headers='keys', tablefmt='fancy
 title = "\033[1mExoplanet Discoveries Accelerated in the 2010s\033[0m"
 print(title)
 print(table)
-
-
-
-
 
 # cumulative plot to see how discoveries have trended over time
 plt.style.use('seaborn')
@@ -400,12 +392,9 @@ method_decade_stats = psc.groupby(['method2', 'disc_decade'])['pl_orbper'].agg([
 method_decade_stats.columns = ['Discovery Method', 'Discovery Decade', 'Mean Orbital Period', 'Standard Deviation', 'Minimum Orbital Period', 'Maximum Orbital Period']
 
 # Format and print table
-table = tabulate.tabulate(method_decade_stats, headers='keys', tablefmt='fancy_grid')
+table = tabulate.tabulate(method_decade_stats.values.tolist(), headers=method_decade_stats.columns, tablefmt='fancy_grid')
 print('\033[1mOrbital Period by Discovery Decade and Discovery Method\033[0m')
 print(table)
-
-
-
 
 
 # create new col to estimate mean distance from host star, in AU
@@ -513,25 +502,27 @@ rad_bins = [0, 0.75, 1.25, 3, 8, 15, 4000]
 rad_labels = ["Sub-Terrestrial", "Terrestrial", "Super-Terrestrial", "Sub-Giant", "Giant", "Super-Giant"]
 psc['rad_cat'] = pd.cut(psc['pl_rade'].map(int), bins=rad_bins, labels=rad_labels, right=False, include_lowest=True)
 
-# boxplots - radius vs. method and decade
+# Boxplots of radius based on method2 and disc_decade
 fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(12, 6))
-sns.boxplot(data=psc, x='disc_decade', y='pl_rade', ax=ax1)
-sns.boxplot(data=psc, x='method2', y='pl_rade', ax=ax2)
-ax1.set_title('Planet Radius by Discovery Decade', fontsize=14, fontweight='bold')
-ax1.set_xlabel('Discovery Decade', fontsize=12, fontweight='bold')
+sns.boxplot(data=psc, x='method2', y='pl_rade', ax=ax1)
+sns.boxplot(data=psc, x='disc_decade', y='pl_rade', ax=ax2)
+ax1.set_title('Planet Radius by Discovery Method', fontsize=14, fontweight='bold')
+ax1.set_xlabel('Discovery Method', fontsize=12, fontweight='bold')
 ax1.set_ylabel('Planet Radius (Earth radii)', fontsize=12, fontweight='bold')
-ax2.set_title('Planet Radius by Discovery Method', fontsize=14, fontweight='bold')
-ax2.set_xlabel('Discovery Method', fontsize=12, fontweight='bold')
+ax2.set_title('Planet Radius by Discovery Decade', fontsize=14, fontweight='bold')
+ax2.set_xlabel('Discovery Decade', fontsize=12, fontweight='bold')
 ax2.set_ylabel('Planet Radius (Earth radii)', fontsize=12, fontweight='bold')
 plt.show()
 
-# summary stats
-rad_method_decade_stats = psc.groupby(['disc_decade', 'method2'])['pl_rade'].agg(['mean', 'std', 'min', 'max']).reset_index()
-rad_method_decade_stats.columns = ['Discovery Decade', 'Discovery Method', 'Mean Radius', 'Standard Deviation', 'Minimum Radius', 'Maximum Radius']
+# Calculate summary statistics by method2 and disc_decade
+rad_method_decade_stats = psc.groupby(['method2', 'disc_decade'])['pl_rade'].agg(['mean', 'std', 'min', 'max']).reset_index()
+rad_method_decade_stats.columns = ['Discovery Method', 'Discovery Decade', 'Mean Radius', 'Standard Deviation', 'Minimum Radius', 'Maximum Radius']
 
-table = tabulate.tabulate(rad_method_decade_stats, headers='keys', tablefmt='fancy_grid')
-print('\033[1mPlanet Radius by Discovery Decade and Discovery Method\033[0m')
+# Format and print table
+table = tabulate.tabulate(rad_method_decade_stats.values.tolist(), headers=rad_method_decade_stats.columns, tablefmt='fancy_grid')
+print('\033[1mPlanet Radius by Discovery Method and Discovery Decade\033[0m')
 print(table)
+
 
 
 #%% Mass
@@ -589,7 +580,7 @@ ax.set_title('Planet Mass (Zoomed In)', fontweight='bold')
 plt.show()
 ###############################################################################
 
-# boxplots - mass vs. method and decade
+# Boxplots of mass based on method2 and disc_decade
 fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(12, 6))
 sns.boxplot(data=psc, x='method2', y='pl_bmasse', ax=ax1)
 sns.boxplot(data=psc, x='disc_decade', y='pl_bmasse', ax=ax2)
@@ -603,11 +594,12 @@ ax2.set_xlabel('Discovery Decade', fontsize=12, fontweight='bold')
 ax2.set_ylabel('Planet Mass (relative to Earth)', fontsize=12, fontweight='bold')
 plt.show()
 
-# summary stats
-mass_method_decade_stats = psc.groupby(['method2', 'disc_decade'])['pl_bmasse'].agg(['count', 'mean']).reset_index()
-mass_method_decade_stats.columns = ['Discovery Method', 'Discovery Decade', 'Count', 'Mean Mass']
+# Calculate summary statistics by method2 and disc_decade
+mass_method_decade_stats = psc.groupby(['method2', 'disc_decade'])['pl_bmasse'].agg(['mean', 'std', 'min', 'max']).reset_index()
+mass_method_decade_stats.columns = ['Discovery Method', 'Discovery Decade', 'Mean Mass', 'Standard Deviation', 'Minimum Mass', 'Maximum Mass']
 
-table = tabulate.tabulate(mass_method_decade_stats, headers='keys', tablefmt='fancy_grid')
+# Format and print table
+table = tabulate.tabulate(mass_method_decade_stats.values.tolist(), headers=mass_method_decade_stats.columns, tablefmt='fancy_grid')
 print('\033[1mPlanet Mass by Discovery Method and Discovery Decade\033[0m')
 print(table)
 
@@ -919,26 +911,43 @@ plt.show()
 
 # plot to compare the systems w/ most Earth-like planets w/ Sol system
 systems_2_hosts = earth_like_planets['hostname'].unique()
-systems_2 = psc[psc['hostname'].isin(systems_2_hosts)]
+systems_2 = psc[psc['hostname'].isin(systems_2_hosts)].copy()
+systems_2['is_earth_like'] = systems_2['pl_name'].isin(earth_like_planets['pl_name'])
+g = sns.relplot(data=systems_2, x='pl_orbr_est', y='hostname', size='pl_bmasse', hue='is_earth_like', palette=['teal', 'red'])
+g.set_axis_labels('Estimated Orbital Period (days)', 'Host Star Name')
+plt.subplots_adjust(top=0.9)
+plt.xlabel('Total Planet Orbital Estimate (AU)', fontweight='bold')
+plt.ylabel('Host Star', fontweight='bold')
+plt.title('Orbital Estimates of Earth-Like Planets Around Their Star', fontweight='bold')
 
-# create a data frame with planet information
+plt.show()
+
+
+
+# plot to compare the systems w/ most Earth-like planets w/ Sol system (Includes SOL up to and including Earth)
+systems_2_hosts = earth_like_planets['hostname'].unique()
+systems_2 = psc[psc['hostname'].isin(systems_2_hosts)].copy()
+
 solar_system = pd.DataFrame({
-    'pl_name': ['Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter'],
-    'hostname': ['Sun', 'Sun', 'Sun', 'Sun', 'Sun'],
-    'pl_orbr_est': [0.387, 0.723, 1.0, 1.524, 5.203],
-    'pl_rade': [0.383, 0.949, 1.0, 0.532, 10.973],
-    'pl_bmasse': [0.0553, 0.815, 1.0, 0.107, 317.8],
-    'pl_dens': [5.427, 5.243, 5.515, 3.933, 1.326]
+    'pl_name': ['Mercury', 'Venus', 'Earth'],
+    'hostname': ['Sun', 'Sun', 'Sun'],
+    'pl_orbr_est': [0.387, 0.723, 1.0],
+    'pl_rade': [0.383, 0.949, 1.0],
+    'pl_bmasse': [0.0553, 0.815, 1.0],
+    'pl_dens': [5.427, 5.243, 5.515]
 })
 
 # concatenate the two data frames
 systems_2 = pd.concat([systems_2, solar_system])
 
-sns.relplot(data=systems_2, x='pl_orbr_est', y='hostname', size='pl_bmasse', height=5, aspect=4.0)
+systems_2['is_earth_like'] = systems_2['pl_name'].isin(earth_like_planets['pl_name'])
+
+sns.relplot(data=systems_2, x='pl_orbr_est', y='hostname', size='pl_bmasse', hue='is_earth_like', palette=['teal', 'red'], height=5, aspect=3)
 plt.xlabel('Total Planet Orbital Estimate (AU)', fontweight='bold')
 plt.ylabel('Host Star', fontweight='bold')
-plt.text(5.5, -0.25, 'Note: Saturn, Uranus, and Neptune are not pictured in this plot.')
-plt.title('Orbital Estimates of Earth-Like Planets and Their Stars', fontweight='bold')
+plt.title('Orbital Estimates of Earth-Like Planets Around Their Star + Sol (Mercury, Venus and Earth)', fontweight='bold')
+plt.annotate('Earth', xy=(0, 4), xytext=(1.03, 5.9), ha='center', fontsize=12, arrowprops=dict(facecolor='black', arrowstyle='->'))
+
 plt.show()
 
 
