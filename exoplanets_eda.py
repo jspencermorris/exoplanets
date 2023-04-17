@@ -9,6 +9,9 @@ import requests
 import tabulate
 from scipy import stats
 
+#pd.set_option('display.max_rows', 100)
+#pd.set_option('display.width', 500)
+
 #%% Import Data
 filename = 'PSCompPars_2023.04.04_17.16.52.csv'
 psc = pd.read_csv(filename, comment='#')
@@ -64,6 +67,7 @@ psc.drop( psc[ psc['pl_bmasse'] > 3200 ].index, inplace=True)
 psc.drop( psc[ psc['pl_dens'] > 11.35 ].index, inplace=True)
 psc.drop( psc[ psc['st_mass'] > 120 ].index, inplace=True)
 psc.drop( psc[ psc['st_age'] > 13.8 ].index, inplace=True)
+psc.drop( psc[ psc['st_teff'] > 8000 ].index, inplace=True)
 
 # remove controversial objects then drop the controversial column
 psc.drop( psc[ psc['pl_controv_flag'] == 1 ].index, inplace=True)
@@ -75,6 +79,8 @@ psc.drop(['pl_controv_flag'], axis=1, inplace=True)
 # reset row indices
 psc.reset_index(drop=True, inplace=True)
 
+
+#%% Time and Techniques
 method_counts = psc.groupby(psc['discoverymethod']).size().sort_values(ascending=False)
 method_stats = pd.DataFrame({
     'Discovery Method': method_counts.index,
