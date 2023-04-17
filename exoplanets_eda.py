@@ -81,6 +81,9 @@ psc.reset_index(drop=True, inplace=True)
 
 
 #%% Time and Techniques
+
+psc [ psc['disc_year'] == 1992][['disc_year','hostname','pl_name','discoverymethod']]
+
 method_counts = psc.groupby(psc['discoverymethod']).size().sort_values(ascending=False)
 method_stats = pd.DataFrame({
     'Discovery Method': method_counts.index,
@@ -336,7 +339,7 @@ orb_period = psc['pl_orbper']
 print('Summary Statistics for Orbital Period:')
 print(orb_period.describe())
 print('Number of Null Periods: ', orb_period.isnull().sum())
-print('% of planets w/ Null Periods: {:.2%}'.format(orb_period.isnull().sum() / len(orb_period)))
+print('Ratio of planets w/ Null Periods: {:.2%}'.format(orb_period.isnull().sum() / len(orb_period)))
 
 # Basic histogram - period
 fig, ax = plt.subplots()
@@ -375,7 +378,7 @@ fig, ax = plt.subplots()
 ax.hist(orb_period, bins=20, range=(0, 150), color='purple', alpha=0.7)
 ax.set_xlabel('Orbital Period (days)', fontsize=12, fontweight='bold')
 ax.set_ylabel('Frequency', fontsize=12, fontweight='bold')
-ax.set_title('Histogram of Exoplanet Orbital Periods (Past Mercury)', fontsize=14, fontweight='bold')
+ax.set_title('Vast majority have periods shorter than Mercury', fontsize=14, fontweight='bold')
 plt.show()
 
 
@@ -415,6 +418,9 @@ pl_orbr_bins = [0,0.5,1.55,10,40]
 pl_orbr_labels = ["Tight","Inner","Middle","Outer"]
 psc['pl_orbloc'] = pd.cut(psc['pl_orbr_est'].map(float, na_action='ignore'), bins=pl_orbr_bins, labels=pl_orbr_labels, right=False, include_lowest=True)
 
+orbloc_table = psc.groupby(['pl_orbloc'], as_index=False)['pl_orbloc'].count()
+print(orbloc_table)
+
 # histogram of discovery methods
 
 #%% Planet Radius
@@ -432,13 +438,22 @@ axes.hist(psc['pl_rade'], bins=20)
 plt.show()
 
 ###############################################################################
-#planent radious
+# exoplanent radius
 fig, ax = plt.subplots(figsize=(10, 5))
 
 # Set x and y labels and title
 ax.set_xlabel('Planet Radius (Relative to Earths)', fontsize=12, fontweight='bold')
 ax.set_ylabel('# of Planets', fontsize=12, fontweight='bold')
-ax.set_title('Distribution of Planet Radii', fontsize=14, fontweight='bold')
+ax.set_title('Two regions of planet radii are predominant', fontsize=14, fontweight='bold')
+
+ax.axvline(1, color='k', linestyle='dashed', linewidth=1)
+ax.text(1.1, 190, 'Earth')
+
+ax.axvline(3.9, color='k', linestyle='dashed', linewidth=1)
+ax.text(4.05, 150, 'Neptune')
+
+ax.axvline(11.2, color='k', linestyle='dashed', linewidth=1)
+ax.text(11.35, 110, 'Jupiter')
 
 # Set number of bins and plot histogram
 num_bins = 200
@@ -504,9 +519,9 @@ axes.plot(xx, kde(xx))
 plt.show()
 
 # add new col to categorize by radius
-rad_bins = [0, 0.75, 1.25, 3, 8, 15, 4000]
-rad_labels = ["Sub-Terrestrial", "Terrestrial", "Super-Terrestrial", "Sub-Giant", "Giant", "Super-Giant"]
-psc['rad_cat'] = pd.cut(psc['pl_rade'].map(int), bins=rad_bins, labels=rad_labels, right=False, include_lowest=True)
+rad_bins = [0, 0.5, 2, 6, 4000]
+rad_labels = ["Tiny", "Small", "Medium", "Large"]
+psc['rad_cat'] = pd.cut(psc['pl_rade'].map(float), bins=rad_bins, labels=rad_labels, right=False, include_lowest=True)
 
 # Boxplots of radius based on method2 and disc_decade
 fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(12, 6))
@@ -691,7 +706,7 @@ from tabulate import tabulate #for some reason I have to call it here again othe
 #Relationship of Planet Estimated Mass and Radius Table
 m_bins = [0, 0.75, 1.25, 3, 8, 15, 4000]
 m_labels = ["Sub-Terrestrial", "Terrestrial", "Super-Terrestrial", "Sub-Giant", "Giant", "Super-Giant"]
-psc['bmasse_cat'] = pd.cut(psc['pl_bmasse'].map(int), bins=m_bins, labels=m_labels, right=False, include_lowest=True)
+psc['bmasse_cat'] = pd.cut(psc['pl_bmasse'].map(float), bins=m_bins, labels=m_labels, right=False, include_lowest=True)
 
 bmasse_cat_stats = psc.groupby('bmasse_cat')['pl_bmasse'].describe()
 pl_orbloc_stats = psc.groupby('pl_orbloc')['bmasse_cat'].describe()
@@ -730,7 +745,7 @@ pass
 #%% System Distance
 print(psc['sy_dist'].describe())
 print('Null Distances: ', psc['sy_dist'].isnull().sum())
-print('% of planets w/ Null Distances: ', psc['sy_dist'].isnull().sum()/psc['sy_dist'].size)
+print('Ratio of planets w/ Null Distances: ', psc['sy_dist'].isnull().sum()/psc['sy_dist'].size)
 
 ###############################################################################
 # system distance vs density
@@ -813,7 +828,7 @@ fig.show()
 #%% Star Mass
 print(psc['st_mass'].describe())
 print('Null Mass: ', psc['st_mass'].isnull().sum())
-print('% of planets w/ Null Mass: ', psc['st_mass'].isnull().sum()/psc['st_mass'].size)
+print('Ratio of planets w/ Null Mass: ', psc['st_mass'].isnull().sum()/psc['st_mass'].size)
 
 ###############################################################################
 # Stars mass appears to be nearly evenly distributed around the suns Mass
@@ -832,13 +847,13 @@ pass
 #%% Star Spectral Type
 print(psc['st_spectype'].describe())
 print('Null Spectral Type: ', psc['st_spectype'].isnull().sum())
-print('% of planets w/ Null Spectral Type: ', psc['st_spectype'].isnull().sum()/psc['st_spectype'].size)
+print('Ratio of planets w/ Null Spectral Type: ', psc['st_spectype'].isnull().sum()/psc['st_spectype'].size)
 
 
 #%% Star Luminosity
 print(psc['st_lum'].describe())
 print('Null Luminosity: ', psc['st_lum'].isnull().sum())
-print('% of planets w/ Null Luminosity: ', psc['st_lum'].isnull().sum()/psc['st_lum'].size)
+print('Ratio of planets w/ Null Luminosity: ', psc['st_lum'].isnull().sum()/psc['st_lum'].size)
 
 ###############################################################################
 # Stars mass vs Luminosity
@@ -871,19 +886,19 @@ plt.show()
 #%% Star Effective Temperature
 print(psc['st_teff'].describe())
 print('Null Effective Temp: ', psc['st_teff'].isnull().sum())
-print('% of planets w/ Null Effective Temp: ', psc['st_teff'].isnull().sum()/psc['st_teff'].size)
+print('Ratio of planets w/ Null Effective Temp: ', psc['st_teff'].isnull().sum()/psc['st_teff'].size)
 
 
 #%% Star Metallicity
 print(psc['st_met'].describe())
 print('Null Metallicity: ', psc['st_met'].isnull().sum())
-print('% of planets w/ Null Metallicity: ', psc['st_met'].isnull().sum()/psc['st_met'].size)
+print('Ratio of planets w/ Null Metallicity: ', psc['st_met'].isnull().sum()/psc['st_met'].size)
 
 
 #%% Star Age
 print(psc['st_age'].describe())
 print('Null Age: ', psc['st_age'].isnull().sum())
-print('% of planets w/ Null Age: ', psc['st_age'].isnull().sum()/psc['st_age'].size)
+print('Ratio of planets w/ Null Age: ', psc['st_age'].isnull().sum()/psc['st_age'].size)
 
 # Scatterplot of star's metallicity and age and planet's density
 print('METALICITY\n',psc['st_met'].describe())
