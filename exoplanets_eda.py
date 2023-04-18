@@ -997,9 +997,12 @@ plt.xlabel('Total Planet Orbital Estimate (AU)', fontweight='bold')
 plt.ylabel('Host Star', fontweight='bold')
 plt.title('Orbital Estimates of Earth-Like Planets Around Their Star', fontweight='bold')
 
-plt.show()
+###########################################################################################
 
+systems_2['st_teff'].describe()
+systems_2['st_spectype'].unique()
 
+###########################################################################################
 
 # plot to compare the systems w/ most Earth-like planets w/ Sol system (Includes SOL up to and including Earth)
 systems_2_hosts = earth_like_planets['hostname'].unique()
