@@ -966,12 +966,17 @@ plt.show()
 
 #%% System
 
+print(psc.groupby(['bmasse_cat'])['rad_cat'].value_counts().unstack())
+
 # barchart to show the frequency of the # of planets per star
 psc['hostname'].value_counts().describe()
 psc['hostname'].value_counts().value_counts()
 
 # plot the frequency of planets in a system
 ax = psc['hostname'].value_counts().value_counts().plot(kind='bar')
+ax.set_title('Few detected multi-planetary systems', fontweight='bold')
+ax.set_xlabel('# of Planets within a System', fontweight='bold')
+ax.set_ylabel('# of Detected Planets', fontweight='bold')
 ax.set_yscale('log')
 plt.show()
 
