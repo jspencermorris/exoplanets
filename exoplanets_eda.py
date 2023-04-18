@@ -761,6 +761,12 @@ ax.set_xlabel("Planet Density (Relative to Earth's)", fontweight='bold')
 ax.set_ylabel('# of Planets', fontweight='bold')
 ax.set_title("Planet Densities", fontweight='bold')
 
+ax.text(5.61, 90, 'Earth')
+ax.axvline(5.51, color='k', linestyle='dashed', linewidth=1)
+
+ax.text(1.43, 90, 'Jupiter')
+ax.axvline(1.33, color='k', linestyle='dashed', linewidth=1)
+
 ax.hist(psc.pl_dens, bins=200)
 plt.show()
 pass
