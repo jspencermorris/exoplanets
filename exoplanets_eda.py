@@ -726,12 +726,11 @@ plt.show()
 from tabulate import tabulate #for some reason I have to call it here again otherwise it errors out.
 
 #Relationship of Planet Estimated Mass and Radius Table
-m_bins = [0, 0.75, 1.25, 3, 8, 15, 4000]
+m_bins = [0, 0.75, 2, 10, 80, 400, 4000]
 m_labels = ["Sub-Terrestrial", "Terrestrial", "Super-Terrestrial", "Sub-Giant", "Giant", "Super-Giant"]
 psc['bmasse_cat'] = pd.cut(psc['pl_bmasse'].map(float), bins=m_bins, labels=m_labels, right=False, include_lowest=True)
 
 mass_table = psc.groupby(['bmasse_cat'])['bmasse_cat'].count()
-mass_table['new col'] = [1,2,3,4,5,6]
 print(mass_table)
 
 bmasse_cat_stats = psc.groupby('bmasse_cat')['pl_bmasse'].describe()
