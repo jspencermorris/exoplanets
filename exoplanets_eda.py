@@ -599,6 +599,28 @@ ax.set_xlabel('Planet Mass (relative to Earth)', fontweight='bold')
 ax.set_ylabel('# of Planets', fontweight='bold')
 ax.set_title('Planet Mass (Zoomed In)', fontweight='bold')
 plt.show()
+
+###############################################################################
+# Planets masses
+fig, ax = plt.subplots(1,2, squeeze=False, figsize=(15,5))
+fig.suptitle('Vast majority of discoveries are lower-mass than Neptune', fontweight='bold')
+
+ax[0,0].set_xlabel('Planet Mass (relative to Earth)', fontweight='bold')
+ax[0,0].set_ylabel('# of Planets', fontweight='bold')
+ax[0,0].axvline(300, color='k', linestyle='dashed', linewidth=1)
+ax[0,0].text(400, 3300, 'Jupiter')
+ax[0,0].hist(psc.pl_bmasse, bins=30)
+
+ax[0,1].hist(psc['pl_bmasse'], bins=3000)
+ax[0,1].set_xlim(0,25)
+ax[0,1].set_xlabel('Planet Mass (relative to Earth)', fontweight='bold')
+ax[0,1].set_ylim(0,600)
+ax[0,1].axvline(1, color='k', linestyle='dashed', linewidth=1)
+ax[0,1].text(1.5, 520, 'Earth')
+ax[0,1].axvline(17.1, color='k', linestyle='dashed', linewidth=1)
+ax[0,1].text(17.6, 520, 'Neptune')
+
+plt.show()
 ###############################################################################
 
 # Boxplots of mass based on method2 and disc_decade
@@ -707,6 +729,10 @@ from tabulate import tabulate #for some reason I have to call it here again othe
 m_bins = [0, 0.75, 1.25, 3, 8, 15, 4000]
 m_labels = ["Sub-Terrestrial", "Terrestrial", "Super-Terrestrial", "Sub-Giant", "Giant", "Super-Giant"]
 psc['bmasse_cat'] = pd.cut(psc['pl_bmasse'].map(float), bins=m_bins, labels=m_labels, right=False, include_lowest=True)
+
+mass_table = psc.groupby(['bmasse_cat'])['bmasse_cat'].count()
+mass_table['new col'] = [1,2,3,4,5,6]
+print(mass_table)
 
 bmasse_cat_stats = psc.groupby('bmasse_cat')['pl_bmasse'].describe()
 pl_orbloc_stats = psc.groupby('pl_orbloc')['bmasse_cat'].describe()
