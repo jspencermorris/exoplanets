@@ -850,7 +850,7 @@ fig.add_trace(go.Scatter(
 fig.update_layout(
     xaxis_title='Planet Mass (Earth Masses)',
     yaxis_title='Planet Radius (Earth Radii)',
-    title='Planets with Mass and Radius Similar to Earth within 50 Light Years (Between 80% and 120%)',
+    title='Planets with Mass and Radius Similar to Earth within 50 Light Years (Between 75% and 125%)',
     legend=dict(x=0, y=1)
 )
 fig.show()
