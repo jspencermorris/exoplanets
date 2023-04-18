@@ -1039,8 +1039,13 @@ psc_spec = psc[psc['pl_spec']>0]
 print('Planets w/ spectroscopy Measurements: ', psc_spec['pl_spec'].size)
 
 # histogram of the number of spectroscopy measurements per planet
-plt.hist(psc_spec['pl_spec'], bins=20)
+fig, ax = plt.subplots(figsize=(10,5))
+ax.set_xlabel("# of Acquired Spectra)", fontweight='bold')
+ax.set_ylabel('# of Planets', fontweight='bold')
+ax.set_title("Most compositional measurements are based on few spectra", fontweight='bold')
+ax.hist(psc_spec['pl_spec'], bins=20)
 plt.show()
+pass
 
 # add new col to categorize by # of spectroscopy measurements
 spec_bins = [0,20,200,2000]
