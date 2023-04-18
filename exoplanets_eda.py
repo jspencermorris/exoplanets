@@ -855,6 +855,26 @@ fig.update_layout(
 )
 fig.show()
 
+###############################################################################
+# planents densities relive to earths
+#interesting cut off at 6
+fig, ax = plt.subplots(figsize=(10,5))
+
+ax.set_xlabel("Stellar Distance (ly)", fontweight='bold')
+ax.set_ylabel('# of Stars', fontweight='bold')
+ax.set_title("Stellar Distances", fontweight='bold')
+ax.set_xlim(0,10000)
+
+ax.text(600, 150, 'Betelgeuse')
+ax.axvline(550, color='k', linestyle='dashed', linewidth=1)
+ax.text(2650, 150, 'Deneb')
+ax.axvline(2600, color='k', linestyle='dashed', linewidth=1)
+
+ax.hist(psc.sy_dist_ly, bins=500)
+plt.show()
+pass
+###############################################################################
+
 
 #%% Star Mass
 print(psc['st_mass'].describe())
